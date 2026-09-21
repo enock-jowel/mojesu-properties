@@ -9,6 +9,10 @@ import type {
   ServiceEnquiryRequest,
   ServiceEnquirySubmitResult,
 } from './types'
+import {
+  isMissingRelationError,
+  persistLeadFallback,
+} from '@/lib/api/lead-fallback'
 
 export interface SubmitServiceEnquiryContext {
   env: NotifyEnv
@@ -42,10 +46,25 @@ export async function submitServiceEnquiry(
     try {
       await createSupabaseServiceEnquiryStore(ctx.supabase).insert(row)
     } catch (err) {
-      console.error('[serviceEnquiry] store failed', err)
-      return {
-        ok: false,
-        error: err instanceof Error ? err.message : 'Store failed',
+      if (isMissingRelationError(err)) {
+        try {
+          await persistLeadFallback(ctx.supabase, 'service', id, row)
+        } catch (fallbackErr) {
+          console.error('[serviceEnquiry] fallback failed', fallbackErr)
+          return {
+            ok: false,
+            error:
+              fallbackErr instanceof Error
+                ? fallbackErr.message
+                : 'Store failed',
+          }
+        }
+      } else {
+        console.error('[serviceEnquiry] store failed', err)
+        return {
+          ok: false,
+          error: err instanceof Error ? err.message : 'Store failed',
+        }
       }
     }
   } else {
