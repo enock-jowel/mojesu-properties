@@ -15,10 +15,16 @@
 
 ## You must finish (free, external)
 1. **Supabase migration** — SQL Editor → paste & run `supabase/migrations/007_lead_enquiries.sql`
-2. **Resend** — verify `jowelnionzima@gmail.com` (signup started), create API key, then:
+2. **Resend** — confirm email first (`Just signed up? Confirm your email…` on login), then create API key:
    `./node_modules/.bin/vercel env add RESEND_API_KEY` for production,preview,development
    Password for Resend signup is in `.env.resend.local` (gitignored)
 3. Redeploy: `pnpm vercel:preview`
 
-Without (1), contact/service inserts fail until tables exist.
-Without (2), leads still save to DB but notify email is skipped (same as before for viewings).
+### Vercel deploy blocked (2026-09-21)
+Deploys with commit author `Mojesu <mojesu@local>` are **BLOCKED**:
+“commit author doesn’t have permission to create deployments for this project.”
+Fix: commit/deploy with an author email that matches a Vercel team member (use
+`git -c user.email=… -c user.name=…` for one commit — do not change global git config).
+
+Without (1), contact/service inserts use Storage fallback (`lib/api/lead-fallback.ts`) until tables exist.
+Without (2), leads still save but notify email is skipped (same as viewings).
