@@ -1,0 +1,17 @@
+# Optional Cloudflare Pages + D1 bindings for viewing bookings & property submissions.
+# name = "mojesu"
+# compatibility_date = "2026-07-01"
+#
+# [[d1_databases]]
+# binding = "DB"
+# database_name = "mojesu-bookings"
+# database_id = "<your-d1-id>"
+#
+# Apply schemas:
+#   wrangler d1 execute mojesu-bookings --file=./schema/viewing-booking.sql
+#   wrangler d1 execute mojesu-bookings --file=./schema/property-submission.sql
+#
+# [vars]
+# SITE_URL = "https://mojesuproperties.com"
+# NOTIFY_EMAIL_TO = "hello@mojesuproperties.com"
+# NEXT_PUBLIC_WHATSAPP_NUMBER = "256787054586"

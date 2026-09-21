@@ -1,0 +1,45 @@
+{
+  "name": "property-listings",
+  "version": "0.1.0",
+  "private": true,
+  "scripts": {
+    "dev": "next dev",
+    "build": "next build",
+    "start": "next start",
+    "lint": "eslint .",
+    "seed:listings": "node ./node_modules/tsx/dist/cli.mjs scripts/seed-listings.ts",
+    "seed:content": "node ./node_modules/tsx/dist/cli.mjs scripts/seed-content.ts",
+    "seed:site": "node ./node_modules/tsx/dist/cli.mjs scripts/seed-site-content.ts",
+    "check:images": "node ./node_modules/tsx/dist/cli.mjs scripts/check-image-budget.ts",
+    "preview:seed": "node ./node_modules/tsx/dist/cli.mjs scripts/seed-preview.ts",
+    "vercel:preview": "node ./node_modules/tsx/dist/cli.mjs scripts/deploy-vercel-preview.ts",
+    "cf:build": "OPEN_NEXT_BUILD=1 node ./node_modules/@opennextjs/cloudflare/dist/cli/index.js build",
+    "cf:deploy": "OPEN_NEXT_BUILD=1 node ./node_modules/@opennextjs/cloudflare/dist/cli/index.js build && node ./node_modules/wrangler/bin/wrangler.js deploy"
+  },
+  "dependencies": {
+    "@flaticon/flaticon-uicons": "^3.3.1",
+    "@supabase/ssr": "^0.12.3",
+    "@supabase/supabase-js": "^2.110.7",
+    "lucide-react": "^1.24.0",
+    "next": "^15.5.0",
+    "react": "^19.1.0",
+    "react-dom": "^19.1.0",
+    "recharts": "^3.9.2"
+  },
+  "devDependencies": {
+    "@eslint/eslintrc": "^3.3.6",
+    "@opennextjs/cloudflare": "^1.20.1",
+    "@tailwindcss/postcss": "^4.1.0",
+    "@types/node": "^22",
+    "@types/react": "^19",
+    "@types/react-dom": "^19",
+    "dotenv": "^17.4.2",
+    "eslint": "^9",
+    "eslint-config-next": "^15.5.0",
+    "tailwindcss": "^4.1.0",
+    "tsx": "^4.23.1",
+    "typescript": "^5.7.3",
+    "vercel": "^56.3.1",
+    "wrangler": "^4.112.0"
+  }
+}

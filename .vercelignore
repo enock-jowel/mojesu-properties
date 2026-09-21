@@ -1,0 +1,13 @@
+# Keep Vercel uploads small — build runs on their servers
+.open-next
+.next
+.pnpm-store
+node_modules
+reference
+.git
+.cursor
+agent-transcripts
+*.log
+.env
+.env.*
+!.env.example

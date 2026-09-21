@@ -1,0 +1,420 @@
+@import 'tailwindcss';
+
+/* Ensure FAQ / accordion answers stay hidden when closed (some resets fight UA details rules) */
+details:not([open]) > :not(summary) {
+  display: none;
+}
+
+:root {
+  /* Brand palette — use tokens only; no ad-hoc hex in components */
+  --primary: #63aaf0;
+  --primary-dark: #3492b8;
+  --accent-deep: #144e6e;
+  --secondary: #494f3b;
+  --neutral-muted: #475053;
+  --neutral-light: #cac7c5;
+  --ink: #2a2e32;
+  --footer: #485354;
+
+  /* Soft pill fills (listing badges) */
+  --pill-soft: #f1f7fb;
+  --pill-soft-mid: #e2f3f8;
+  --pill-soft-cool: #f5fafa;
+  --pill-title-status: #f0eadf;
+
+  /* List With Us visit card accent — brand primary */
+  --visit-accent: #63aaf0;
+
+  /* Surfaces */
+  --background: #fafafa;
+  --surface: #ffffff;
+  --surface-alt: #f3f3f2;
+
+  /* Exception: favorited heart (UX convention) */
+  --heart: #ff385c;
+}
+
+@theme inline {
+  --color-primary: var(--primary);
+  --color-primary-dark: var(--primary-dark);
+  --color-accent-deep: var(--accent-deep);
+  --color-secondary: var(--secondary);
+  --color-neutral-muted: var(--neutral-muted);
+  --color-neutral-light: var(--neutral-light);
+  --color-ink: var(--ink);
+  --color-footer: var(--footer);
+  --color-pill-soft: var(--pill-soft);
+  --color-pill-soft-mid: var(--pill-soft-mid);
+  --color-pill-soft-cool: var(--pill-soft-cool);
+  --color-pill-title-status: var(--pill-title-status);
+  --color-visit-accent: var(--visit-accent);
+  --color-background: var(--background);
+  --color-surface: var(--surface);
+  --color-surface-alt: var(--surface-alt);
+  --color-heart: var(--heart);
+  --font-sans: ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont,
+    'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+}
+
+@layer base {
+  html {
+    scroll-behavior: smooth;
+    /*
+     * Do NOT set overflow-x on html/body — it makes position:fixed
+     * contain to a wide scrollport and pushes bottom CTAs off-screen.
+     * Horizontal pan is blocked via touch-action + LockHorizontalPagePan.
+     */
+    width: 100%;
+    max-width: 100%;
+    overscroll-behavior-x: none;
+    overscroll-behavior-y: auto;
+  }
+
+  body {
+    @apply bg-background text-ink antialiased font-sans;
+    width: 100%;
+    max-width: 100%;
+    overscroll-behavior-x: none;
+  }
+
+  main {
+    width: 100%;
+    max-width: 100%;
+    overscroll-behavior-x: none;
+  }
+
+  /*
+   * touch-action is NOT inherited. Without this, every child defaults to
+   * `auto` and sideways finger-drag still pans the whole page — including
+   * listing/service/insight single pages. Vertical-only everywhere; carousels
+   * opt back into horizontal via .carousel-track / .allow-x-scroll.
+   */
+  html,
+  body,
+  body * {
+    touch-action: pan-y pinch-zoom;
+  }
+
+  body .carousel-track,
+  body .carousel-track *,
+  body .allow-x-scroll,
+  body .allow-x-scroll * {
+    touch-action: pan-x pan-y pinch-zoom;
+  }
+}
+
+@layer components {
+  /* Shared left/right gutters — wide enough on desktop to fit ~6 cards */
+  .site-container {
+    @apply mx-auto w-full max-w-[1600px] px-8 sm:px-14 lg:px-20 xl:px-24;
+    max-width: min(1600px, 100%);
+    box-sizing: border-box;
+  }
+
+  /*
+   * Shared mobile horizontal carousels:
+   * - shell: full-bleed on mobile, site gutters from sm up
+   * - track: text-aligned inset + snap padding; faint edge fade (not white bars)
+   * - shell clips so peeks never widen the page
+   */
+  .carousel-track-shell {
+    @apply relative mx-auto w-full max-w-[1600px] sm:px-14 lg:px-20 xl:px-24;
+    max-width: min(1600px, 100%);
+    overflow-x: clip;
+  }
+
+  .carousel-track {
+    @apply flex w-full max-w-full snap-x snap-mandatory overflow-x-auto scroll-smooth px-8 scroll-px-8
+      [-ms-overflow-style:none] [scrollbar-width:none]
+      sm:px-0 sm:scroll-px-0;
+    overscroll-behavior-x: contain;
+  }
+
+  /* Intentional horizontal scrollers (gallery, chips, detail carousels, …) */
+  .allow-x-scroll {
+    overscroll-behavior-x: contain;
+  }
+
+  .carousel-track::-webkit-scrollbar {
+    display: none;
+  }
+
+  .carousel-track {
+    -webkit-mask-image: linear-gradient(
+      to right,
+      transparent,
+      #000 12px,
+      #000 calc(100% - 12px),
+      transparent
+    );
+    mask-image: linear-gradient(
+      to right,
+      transparent,
+      #000 12px,
+      #000 calc(100% - 12px),
+      transparent
+    );
+  }
+
+  @media (min-width: 640px) {
+    .carousel-track {
+      -webkit-mask-image: none;
+      mask-image: none;
+    }
+  }
+
+  /* Reviews: infinite horizontal loop (mobile) */
+  @keyframes reviews-marquee {
+    from {
+      transform: translate3d(0, 0, 0);
+    }
+    to {
+      transform: translate3d(-50%, 0, 0);
+    }
+  }
+
+  .reviews-marquee-track {
+    animation: reviews-marquee 45s linear infinite;
+    will-change: transform;
+  }
+
+  .reviews-marquee-track:hover {
+    animation-play-state: paused;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .reviews-marquee-track {
+      animation: none;
+    }
+  }
+}
+
+/* Opacity-only — avoid translateY so card entrance never contributes to CLS */
+@keyframes card-in {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+.animate-card-in {
+  animation: card-in 0.45s ease both;
+}
+
+@keyframes heart-pop {
+  0% {
+    transform: scale(1);
+  }
+  40% {
+    transform: scale(1.35);
+  }
+  100% {
+    transform: scale(1);
+  }
+}
+
+.animate-heart-pop {
+  animation: heart-pop 150ms ease-out;
+}
+
+/* CTA: arrow slides L→R and reveals the label, then soft-loops */
+@keyframes cta-label-reveal {
+  0% {
+    clip-path: inset(0 100% 0 0);
+    opacity: 1;
+  }
+  55% {
+    clip-path: inset(0 0 0 0);
+    opacity: 1;
+  }
+  72% {
+    clip-path: inset(0 0 0 0);
+    opacity: 1;
+  }
+  88% {
+    clip-path: inset(0 0 0 0);
+    opacity: 0;
+  }
+  100% {
+    clip-path: inset(0 100% 0 0);
+    opacity: 0;
+  }
+}
+
+@keyframes cta-arrow-reveal {
+  0% {
+    left: 0.2rem;
+    opacity: 1;
+    transform: translateY(-50%) rotate(0deg);
+  }
+  55% {
+    left: calc(100% - var(--cta-arrow-size) - 0.2rem);
+    opacity: 1;
+    transform: translateY(-50%) rotate(0deg);
+  }
+  72% {
+    left: calc(100% - var(--cta-arrow-size) - 0.2rem);
+    opacity: 1;
+    transform: translateY(-50%) rotate(45deg);
+  }
+  88% {
+    left: calc(100% - var(--cta-arrow-size) - 0.2rem);
+    opacity: 0;
+    transform: translateY(-50%) rotate(45deg);
+  }
+  100% {
+    left: 0.2rem;
+    opacity: 0;
+    transform: translateY(-50%) rotate(0deg);
+  }
+}
+
+.cta-reveal {
+  --cta-arrow-size: 2rem;
+  position: relative;
+}
+
+.cta-reveal[data-size='sm'] {
+  --cta-arrow-size: 1.5rem;
+}
+
+.cta-reveal[data-size='md'] {
+  --cta-arrow-size: 2rem;
+}
+
+.cta-reveal[data-size='lg'] {
+  --cta-arrow-size: 2.25rem;
+}
+
+.cta-reveal-track {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+}
+
+.cta-reveal-label {
+  display: inline-block;
+  padding-right: 0.375rem;
+  clip-path: inset(0 100% 0 0);
+  animation: cta-label-reveal 3.4s cubic-bezier(0.45, 0.05, 0.25, 1) infinite;
+}
+
+.cta-reveal-spacer {
+  visibility: hidden;
+  pointer-events: none;
+}
+
+.cta-reveal-arrow {
+  position: absolute;
+  top: 50%;
+  left: 0.2rem;
+  margin: 0;
+  animation: cta-arrow-reveal 3.4s cubic-bezier(0.45, 0.05, 0.25, 1) infinite;
+}
+
+.cta-reveal:hover .cta-reveal-label,
+.cta-reveal:focus-visible .cta-reveal-label {
+  animation: none;
+  clip-path: inset(0 0 0 0);
+  opacity: 1;
+}
+
+.cta-reveal:hover .cta-reveal-arrow,
+.cta-reveal:focus-visible .cta-reveal-arrow {
+  animation: none;
+  left: calc(100% - var(--cta-arrow-size) - 0.2rem);
+  opacity: 1;
+  transform: translateY(-50%) rotate(45deg);
+}
+
+@keyframes visit-card-in {
+  from {
+    opacity: 0;
+    transform: translateY(18px) scale(0.98);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+@keyframes visit-gradient-flow {
+  0% {
+    background-position: 0% 40%;
+  }
+  50% {
+    background-position: 100% 60%;
+  }
+  100% {
+    background-position: 0% 40%;
+  }
+}
+
+.animate-visit-card-in {
+  animation: visit-card-in 0.65s cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
+/* Full-card flowing gradient — brand primary wash that drifts continuously */
+.visit-card-flow {
+  background-image: linear-gradient(
+    125deg,
+    color-mix(in srgb, var(--visit-accent) 8%, white) 0%,
+    color-mix(in srgb, var(--visit-accent) 16%, white) 18%,
+    color-mix(in srgb, var(--visit-accent) 28%, white) 36%,
+    color-mix(in srgb, var(--visit-accent) 12%, white) 52%,
+    color-mix(in srgb, var(--visit-accent) 22%, white) 68%,
+    color-mix(in srgb, var(--visit-accent) 14%, white) 84%,
+    color-mix(in srgb, var(--visit-accent) 8%, white) 100%
+  );
+  background-size: 280% 280%;
+  animation: visit-gradient-flow 14s ease-in-out infinite;
+}
+
+/* When form steps are open, keep a calmer static wash so inputs stay readable */
+.visit-card-flow-calm {
+  background-image: linear-gradient(
+    160deg,
+    color-mix(in srgb, var(--visit-accent) 10%, white) 0%,
+    white 45%,
+    color-mix(in srgb, var(--visit-accent) 8%, white) 100%
+  );
+  background-size: 100% 100%;
+  animation: none;
+}
+
+/* Flaticon UIcons — keep amenity glyphs sized and aligned */
+.amenity-icon .fi {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-style: normal;
+  line-height: 1;
+}
+
+.amenity-icon .fi::before {
+  line-height: 1;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+
+  .cta-reveal-label {
+    clip-path: inset(0 0 0 0) !important;
+    opacity: 1 !important;
+  }
+
+  .cta-reveal-arrow {
+    left: calc(100% - var(--cta-arrow-size) - 0.2rem) !important;
+    opacity: 1 !important;
+    transform: translateY(-50%) rotate(0deg) !important;
+  }
+}

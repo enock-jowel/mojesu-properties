@@ -1,0 +1,26 @@
+---
+description: Foundation constraints for Mojesu property listing site — data seam, performance, SEO, design scope
+alwaysApply: true
+---
+
+# Property listing website — foundation
+
+## Architecture
+- Next.js App Router (Vercel primary; optional OpenNext → Cloudflare Workers). **Not** static `output: 'export'`.
+- CMS + auth + storage via **Supabase**. Public pages use ISR (`revalidate` / `unstable_cache`, typically 60s).
+- All listing data through `getProperties()` in `/lib/properties.ts` only — never import seed arrays/JSON in components.
+- Discriminated listings: `category: 'property' | 'land'`. Property cards show beds/baths/m²; land cards show `plotDimensions` only.
+- Canonical site / email: **mojesuproperties.com** / **hello@mojesuproperties.com**.
+
+## Performance (hard)
+- Listings page first load &lt; 500KB; card images &lt; 40KB (build-time WebP/AVIF / Next Image).
+- Minimal client JS; system font or one self-hosted subsetted font — no Google Fonts CDN.
+- Reserved aspect-ratio on images; CWV on Slow 3G: LCP &lt; 2.5s, INP &lt; 200ms, CLS &lt; 0.1.
+
+## Design scope
+- Listings card/grid structure from Mojesu listings section; hero is Airbnb search-pill over full-bleed photo.
+- Color tokens only (see `app/globals.css`): `primary` (#63aaf0), `primary-dark`, `accent-deep`, `secondary`, `neutral-muted`, `neutral-light`, `ink` (#2a2e32 for titles/prices/bold text), `background` (#FAFAFA), `surface`, pill fills. Exception: favorited heart uses `heart` (#FF385C). Never hardcode hex in components.
+- Do not build nav/footer/contact/CTA unless asked.
+
+## Working style
+Scoped steps; confirm between stages. Order: data layer → card → grid → page shell → SEO.
