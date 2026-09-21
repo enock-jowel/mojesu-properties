@@ -11,7 +11,7 @@
 - Supabase image transform in `sizedImageUrl` (smaller card payloads)
 - Listing archive already supported via admin status (`draft|published|archived`)
 - Viewing-list cart deferred (needs UI — README only)
-- Git restored: https://github.com/kibalamavictor/mojesu-properties
+- Git remote: https://github.com/enock-jowel/mojesu-properties
 
 ## You must finish (free, external)
 1. **Supabase migration** — SQL Editor → paste & run `supabase/migrations/007_lead_enquiries.sql`
