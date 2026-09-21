@@ -51,6 +51,7 @@ next-env.d.ts
 # reference dumps / large offline assets
 /reference/
 .env.zoho.local
+.env.resend.local
 
 # Local wrangler / open-next caches
 .wrangler/

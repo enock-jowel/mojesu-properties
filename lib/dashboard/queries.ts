@@ -492,39 +492,20 @@ export async function buildDashboardSnapshot(range?: {
       ],
       gaps: [
         {
-          title: 'Contact form enquiries',
+          title: 'Contact + service enquiries (migration)',
           reason:
-            'Contact form is a UI stub (fake success) — nothing is written to Supabase.',
+            'APIs are wired (app/api/contact-enquiries, service-enquiries). Apply supabase/migrations/007_lead_enquiries.sql on the hosted project if tables are missing.',
           needs: [
-            'Table e.g. contact_enquiries (name, email, phone, message, status, source_path, created_at)',
-            'POST handler / API route that inserts rows (replace localStorage/fake success)',
-            'Optional status column: new | contacted | converted | closed',
-          ],
-        },
-        {
-          title: 'Service enquiry form',
-          reason:
-            'Service enquiry form is a UI stub — enquiry config exists on services, submissions do not.',
-          needs: [
-            'Table e.g. service_enquiries (service_id, contact fields, status, created_at)',
-            'Wire components/service-enquiry-form.tsx to persist',
+            'Run 007_lead_enquiries.sql in Supabase SQL Editor (or scripts/apply-lead-enquiries-migration.ts with SUPABASE_DB_URL)',
+            'Set RESEND_API_KEY on Vercel (free tier) so notify mail leaves Resend',
           ],
         },
         {
           title: 'Failed / undelivered enquiry logging',
           reason:
-            'No error/delivery log table for contact or service endpoints.',
+            'API failures return ok:false to the client; there is still no durable form_submission_errors table.',
           needs: [
-            'Table e.g. form_submission_errors (form, payload_summary, error, created_at)',
-            'Log failures in the future API handlers',
-          ],
-        },
-        {
-          title: 'Unified lead status (new → closed)',
-          reason:
-            'Only property_submissions have a status funnel. Contact/service leads have no rows. Viewing bookings use a separate status enum.',
-          needs: [
-            'Either unify leads into one table with source + status, or add status to each lead type and aggregate here',
+            'Optional table e.g. form_submission_errors (form, payload_summary, error, created_at)',
           ],
         },
       ],
