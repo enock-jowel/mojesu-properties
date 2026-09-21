@@ -21,10 +21,12 @@
 3. Redeploy: `pnpm vercel:preview`
 
 ### Vercel deploy blocked (2026-09-21)
-Deploys with commit author `Mojesu <mojesu@local>` are **BLOCKED**:
-“commit author doesn’t have permission to create deployments for this project.”
-Fix: commit/deploy with an author email that matches a Vercel team member (use
-`git -c user.email=… -c user.name=…` for one commit — do not change global git config).
+Deploys whose git commit author is not a Vercel collaborator are **BLOCKED**
+(“commit author doesn’t have permission…”). Wrong authors seen: `mojesu@local`,
+`jowelnionzima@gmail.com`. Vercel account for this project is
+**enockjowel1231@gmail.com** — always commit with that email:
+`git -c user.email=enockjowel1231@gmail.com -c user.name='Enock Jowel' …`
+(do not change global git config).
 
 Without (1), contact/service inserts use Storage fallback (`lib/api/lead-fallback.ts`) until tables exist.
 Without (2), leads still save but notify email is skipped (same as viewings).
