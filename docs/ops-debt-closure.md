@@ -31,7 +31,7 @@ Lead tables from `007` verified present (read-only counts).
 ## Owner-only (cannot finish from repo alone)
 1. ~~**Resend** API key on Vercel~~ — set on mojesu-preview (production/preview/development)
 2. ~~Confirm Vercel `SUPABASE_*` → mdbx~~ — force-synced from `.env.preview.local`
-3. Redeploy after env/migration changes (in progress / done with this ship)
+3. ~~Redeploy~~ — live at https://mojesuproperties.com (`c59b811`)
 4. Google Business Profile when ready (`docs/seo-geo-phase5-6.md`)
 
 ### Vercel deploy blocked
@@ -43,11 +43,17 @@ Commits whose author is not a Vercel collaborator are **BLOCKED**. Always:
 
 | PR | Scope | Status |
 |----|--------|--------|
-| **1** | Fail-closed + featured | Done (working tree) |
-| **2** | Requests inbox (all four) | Done (working tree) |
-| **3** | Public `/areas/` | Done (working tree) |
+| **1** | Fail-closed + featured | Done (`c59b811`) |
+| **2** | Requests inbox (all four) | Done |
+| **3** | Public `/areas/` | Done |
 | **4** | RLS harden (`008`) | **Applied on mdbx** |
 | **5** | Docs + dual-Supabase | Done |
+
+## Deploy
+- Pushed `c59b811` to `origin/main` (author enockjowel1231@gmail.com)
+- Vercel `mojesu-preview` env: mdbx + Resend synced; production redeployed
+- Live: https://mojesuproperties.com
+
 
 ## Demo / seed data
 - `pnpm seed:listings` = **demo catalog**, not client stock — archive/replace before launch
