@@ -60,3 +60,6 @@ next-env.d.ts
 out/
 .env*
 !.env.example
+
+# Private password vault (never commit)
+docs/credentials.private.md

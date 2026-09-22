@@ -4,7 +4,8 @@
 
 - **Live:** `https://mdbxvcjyawgtzpingquq.supabase.co` (Forever Free)
 - **Retired:** do not point apps at `tbrbir…`
-- See also `docs/ops-debt-closure.md`
+- **Handoff / accounts:** [`docs/HANDOFF.md`](../docs/HANDOFF.md)
+- Ops checklist: `docs/ops-debt-closure.md`
 
 ## Setup
 

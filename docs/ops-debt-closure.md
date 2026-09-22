@@ -1,10 +1,13 @@
 # Ops checklist — debt closure
 
+> **Engineer onboarding / accounts SSOT:** [`HANDOFF.md`](./HANDOFF.md)
+
 ## Canonical environment
 - **Live Supabase:** `https://mdbxvcjyawgtzpingquq.supabase.co` (Forever Free)
 - **Do not** point Vercel or local `.env.local` at the retired `tbrbir…` project
 - **Site / email:** mojesuproperties.com / hello@mojesuproperties.com
 - **Vercel commit author:** `enockjowel1231@gmail.com` (other authors block deploy)
+- **Vercel project:** `mojesu-preview` only (empty `mojesu` project removed)
 
 ## Done in code
 - Contact + service enquiry APIs (same pattern as viewings)
