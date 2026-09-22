@@ -37,6 +37,7 @@ import type {
   ListingWriteInput,
 } from '@/lib/listings/types'
 import { MIN_LISTING_IMAGES, validateListingImages } from '@/lib/listing-validation'
+import { publishBlocked } from '@/lib/listings/publish'
 import { createClient } from '@/lib/supabase/client'
 import type { AreaTier } from '@/lib/areas'
 
@@ -117,6 +118,7 @@ function emptyDraft(
       highlights: [] as string[],
       amenities: [] as string[],
       location_notes: '',
+      is_featured: false,
       ...prefillRest,
       status: 'draft' as CmsStatus,
     }
@@ -175,6 +177,7 @@ function emptyDraft(
       highlights: initial.highlights || [],
       amenities: initial.amenities || [],
       location_notes: initial.location_notes || '',
+      is_featured: Boolean(initial.is_featured),
     },
     images: imgs.map((img, i) => ({
       localId: img.id || `img-${i}`,
@@ -351,16 +354,7 @@ export function ListingEditor({
   }
 
   function publishBlockers(): string | null {
-    if (images.length < MIN_LISTING_IMAGES) return imageCheck.message
-    if (!images.some((i) => i.is_cover)) return 'Select a cover photo.'
-    if (form.listing_mode === 'sale' && !form.title_status) {
-      return 'Title status is required for sale listings.'
-    }
-    if (form.category === 'land' && !form.title_status) {
-      return 'Title status is required for land.'
-    }
-    if (!form.title.trim() || !form.area.trim()) return 'Title and area are required.'
-    return null
+    return publishBlocked(buildPayload('published'))
   }
 
   function onSave(status: CmsStatus) {
@@ -919,6 +913,14 @@ export function ListingEditor({
                 onChange={(e) => patch('price_negotiable', e.target.checked)}
               />
               Price negotiable
+            </label>
+            <label className="flex items-center gap-2 text-sm font-semibold text-ink">
+              <input
+                type="checkbox"
+                checked={Boolean(form.is_featured)}
+                onChange={(e) => patch('is_featured', e.target.checked)}
+              />
+              Featured on home
             </label>
             <div>
               <p className="mb-1.5 text-[10px] font-semibold uppercase tracking-wide text-neutral-muted">

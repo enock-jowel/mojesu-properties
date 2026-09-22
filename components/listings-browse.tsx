@@ -10,6 +10,7 @@ import {
   type UseClass,
 } from '@/lib/properties'
 import { type AreaTier } from '@/lib/areas'
+import { getAreaGuideByName, getTierGuide } from '@/lib/area-guides'
 import {
   LAND_TITLE_TYPE_VALUES,
   type HeroSubTab,
@@ -27,6 +28,7 @@ import {
   typeOptionsFromTaxonomy,
 } from '@/lib/site-content/catalog-helpers'
 import { useFavorites } from '@/lib/favorites'
+import Link from 'next/link'
 
 type BrowseMode = 'rent' | 'buy' | 'land'
 
@@ -326,6 +328,28 @@ export function ListingsBrowse({
           {filtered.length} result{filtered.length === 1 ? '' : 's'}
           {location ? ` in ${location}` : ' across Kampala'}
           {tier ? ` · ${areas.tierLabels[tier] || tier}` : ''}
+          {(() => {
+            const guide =
+              (location && getAreaGuideByName(location)) ||
+              (tier && getTierGuide(tier)) ||
+              null
+            if (!guide) return null
+            const href =
+              'name' in guide
+                ? `/areas/${guide.slug}/`
+                : `/areas/tier/${guide.slug}/`
+            return (
+              <>
+                {' · '}
+                <Link
+                  href={href}
+                  className="font-semibold text-primary-dark underline-offset-2 hover:underline"
+                >
+                  Area guide
+                </Link>
+              </>
+            )
+          })()}
         </p>
         {tier || location ? (
           <p className="mt-3 max-w-2xl text-[14px] leading-relaxed text-neutral-muted sm:text-[15px]">

@@ -15,12 +15,15 @@ import type {
   HomeContent,
   TaxonomyContent,
 } from '@/lib/site-content/types'
+import { TIER_GUIDES } from '@/lib/area-guides'
+import { AREA_TIER_LABEL } from '@/lib/areas'
 import { ListingCarouselRow } from '@/components/listing-carousel-row'
 import { HomeCarouselCards } from '@/components/home-carousel-cards'
 import { ServicesGrid } from '@/components/services-grid'
 import { ReviewsSection } from '@/components/reviews-section'
 import { AgentsSection } from '@/components/agents-section'
 import { BlogSection } from '@/components/blog-section'
+import Link from 'next/link'
 
 function carouselPreviews(items: Property[]) {
   return items.slice(0, 3).map((item) => {
@@ -139,6 +142,43 @@ export function HomeFeed({
       >
         <HomeCarouselCards items={commercial} />
       </ListingCarouselRow>
+
+      <section className="site-container mt-10 sm:mt-14">
+        <div className="mb-5 flex flex-wrap items-end justify-between gap-3">
+          <div>
+            <h2 className="text-xl font-extrabold text-ink sm:text-2xl">
+              {home.carousels.exploreAreas.title}
+            </h2>
+            <p className="mt-1 text-sm text-neutral-muted">
+              {home.carousels.exploreAreas.subtitle}
+            </p>
+          </div>
+          <Link
+            href="/areas/"
+            className="text-sm font-bold text-primary-dark underline-offset-4 hover:underline"
+          >
+            All area guides
+          </Link>
+        </div>
+        <ul className="grid gap-3 sm:grid-cols-3">
+          {TIER_GUIDES.map((tier) => (
+            <li key={tier.slug}>
+              <Link
+                href={`/areas/tier/${tier.slug}/`}
+                className="block rounded-2xl border border-neutral-light/80 bg-surface-alt/40 p-4 transition-colors hover:border-primary/40 hover:bg-pill-soft sm:p-5"
+              >
+                <p className="text-[11px] font-bold uppercase tracking-wide text-accent-deep">
+                  {AREA_TIER_LABEL[tier.tier]}
+                </p>
+                <h3 className="mt-1 text-base font-bold text-ink">{tier.title}</h3>
+                <p className="mt-2 line-clamp-3 text-sm leading-relaxed text-neutral-muted">
+                  {tier.summary}
+                </p>
+              </Link>
+            </li>
+          ))}
+        </ul>
+      </section>
 
       <ServicesGrid services={services} intro={home.sections.services} />
       <ReviewsSection

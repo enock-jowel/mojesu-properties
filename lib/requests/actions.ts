@@ -4,20 +4,23 @@ import { revalidatePath, revalidateTag } from 'next/cache'
 import { requireStaff, type ActionResult } from '@/lib/admin/auth'
 import { getViewingContent } from '@/lib/site-content/queries'
 import type {
+  ContactEnquiryRow,
+  ContactEnquiryStatus,
   ListingAdminRef,
   PropertySubmissionRow,
   PropertySubmissionStatus,
+  ServiceEnquiryRow,
+  ServiceEnquiryStatus,
   ViewingBookingRow,
   ViewingBookingStatus,
 } from '@/lib/requests/types'
 
-function revalidateRequests(id?: string) {
+function revalidateRequests(kind?: string, id?: string) {
   revalidateTag('admin-dashboard')
   revalidatePath('/admin/requests/')
   revalidatePath('/admin/dashboard/')
-  if (id) {
-    revalidatePath(`/admin/requests/bookings/${id}/`)
-    revalidatePath(`/admin/requests/submissions/${id}/`)
+  if (kind && id) {
+    revalidatePath(`/admin/requests/${kind}/${id}/`)
   }
 }
 
@@ -102,7 +105,7 @@ export async function updateViewingBookingStatus(
     .single()
 
   if (error || !data) return { ok: false, error: error?.message || 'Update failed' }
-  revalidateRequests(id)
+  revalidateRequests('bookings', id)
   return { ok: true, data: data as ViewingBookingRow }
 }
 
@@ -163,6 +166,127 @@ export async function updatePropertySubmissionStatus(
     .single()
 
   if (error || !data) return { ok: false, error: error?.message || 'Update failed' }
-  revalidateRequests(id)
+  revalidateRequests('submissions', id)
   return { ok: true, data: data as PropertySubmissionRow }
+}
+
+export async function getAdminContactEnquiries(): Promise<
+  ActionResult<ContactEnquiryRow[]>
+> {
+  const gate = await requireStaff()
+  if (gate.error) return { ok: false, error: gate.error }
+
+  const { data, error } = await gate.supabase
+    .from('contact_enquiries')
+    .select('*')
+    .order('created_at', { ascending: false })
+
+  if (error) return { ok: false, error: error.message }
+  return { ok: true, data: (data || []) as ContactEnquiryRow[] }
+}
+
+export async function getAdminContactEnquiry(
+  id: string,
+): Promise<ActionResult<ContactEnquiryRow>> {
+  const gate = await requireStaff()
+  if (gate.error) return { ok: false, error: gate.error }
+
+  const { data, error } = await gate.supabase
+    .from('contact_enquiries')
+    .select('*')
+    .eq('id', id)
+    .maybeSingle()
+
+  if (error || !data) return { ok: false, error: error?.message || 'Not found' }
+  return { ok: true, data: data as ContactEnquiryRow }
+}
+
+export async function updateContactEnquiryStatus(
+  id: string,
+  status: ContactEnquiryStatus,
+): Promise<ActionResult<ContactEnquiryRow>> {
+  const gate = await requireStaff()
+  if (gate.error) return { ok: false, error: gate.error }
+
+  const allowed: ContactEnquiryStatus[] = [
+    'new',
+    'contacted',
+    'converted',
+    'closed',
+  ]
+  if (!allowed.includes(status)) {
+    return { ok: false, error: 'Invalid status' }
+  }
+
+  const { data, error } = await gate.supabase
+    .from('contact_enquiries')
+    .update({ status })
+    .eq('id', id)
+    .select('*')
+    .single()
+
+  if (error || !data) return { ok: false, error: error?.message || 'Update failed' }
+  revalidateRequests('contact', id)
+  return { ok: true, data: data as ContactEnquiryRow }
+}
+
+export async function getAdminServiceEnquiries(): Promise<
+  ActionResult<ServiceEnquiryRow[]>
+> {
+  const gate = await requireStaff()
+  if (gate.error) return { ok: false, error: gate.error }
+
+  const { data, error } = await gate.supabase
+    .from('service_enquiries')
+    .select('*')
+    .order('created_at', { ascending: false })
+
+  if (error) return { ok: false, error: error.message }
+  return { ok: true, data: (data || []) as ServiceEnquiryRow[] }
+}
+
+export async function getAdminServiceEnquiry(
+  id: string,
+): Promise<ActionResult<ServiceEnquiryRow>> {
+  const gate = await requireStaff()
+  if (gate.error) return { ok: false, error: gate.error }
+
+  const { data, error } = await gate.supabase
+    .from('service_enquiries')
+    .select('*')
+    .eq('id', id)
+    .maybeSingle()
+
+  if (error || !data) return { ok: false, error: error?.message || 'Not found' }
+  return { ok: true, data: data as ServiceEnquiryRow }
+}
+
+export async function updateServiceEnquiryStatus(
+  id: string,
+  status: ServiceEnquiryStatus,
+): Promise<ActionResult<ServiceEnquiryRow>> {
+  const gate = await requireStaff()
+  if (gate.error) return { ok: false, error: gate.error }
+
+  const allowed: ServiceEnquiryStatus[] = [
+    'new',
+    'contacted',
+    'quoted',
+    'won',
+    'closed',
+  ]
+  if (!allowed.includes(status)) {
+    return { ok: false, error: 'Invalid status' }
+  }
+
+  const { data, error } = await gate.supabase
+    .from('service_enquiries')
+    .update({ status })
+    .eq('id', id)
+    .select('*')
+    .single()
+
+  if (error || !data) return { ok: false, error: error?.message || 'Update failed' }
+  revalidateRequests('services', id)
+  return { ok: true, data: data as ServiceEnquiryRow }
 }

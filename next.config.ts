@@ -84,13 +84,6 @@ const nextConfig: NextConfig = {
     ],
   },
   trailingSlash: true,
-  async redirects() {
-    return [
-      { source: '/areas', destination: '/', permanent: true },
-      { source: '/areas/', destination: '/', permanent: true },
-      { source: '/areas/:path*', destination: '/', permanent: true },
-    ]
-  },
   async headers() {
     return [
       {

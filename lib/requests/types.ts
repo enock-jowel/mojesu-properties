@@ -12,6 +12,19 @@ export type PropertySubmissionStatus =
   | 'listed'
   | 'declined'
 
+export type ContactEnquiryStatus =
+  | 'new'
+  | 'contacted'
+  | 'converted'
+  | 'closed'
+
+export type ServiceEnquiryStatus =
+  | 'new'
+  | 'contacted'
+  | 'quoted'
+  | 'won'
+  | 'closed'
+
 export type ViewingBookingRow = {
   id: string
   listing_ids: string[]
@@ -45,6 +58,33 @@ export type PropertySubmissionRow = {
   submitted_at: string
 }
 
+export type ContactEnquiryRow = {
+  id: string
+  purpose: string
+  location: string
+  message: string
+  name: string
+  email: string
+  phone: string
+  source_path: string | null
+  status: ContactEnquiryStatus
+  created_at: string
+}
+
+export type ServiceEnquiryRow = {
+  id: string
+  service_id: string | null
+  service_slug: string | null
+  service_name: string
+  brief: Record<string, string> | null
+  name: string
+  email: string
+  phone: string
+  source_path: string | null
+  status: ServiceEnquiryStatus
+  created_at: string
+}
+
 export type ListingAdminRef = {
   id: string
   slug: string
@@ -69,6 +109,21 @@ export const SUBMISSION_STATUS_LABEL: Record<PropertySubmissionStatus, string> =
     declined: 'Declined',
   }
 
+export const CONTACT_STATUS_LABEL: Record<ContactEnquiryStatus, string> = {
+  new: 'New',
+  contacted: 'Contacted',
+  converted: 'Converted',
+  closed: 'Closed',
+}
+
+export const SERVICE_STATUS_LABEL: Record<ServiceEnquiryStatus, string> = {
+  new: 'New',
+  contacted: 'Contacted',
+  quoted: 'Quoted',
+  won: 'Won',
+  closed: 'Closed',
+}
+
 /** Pill soft classes aligned with CMS brief. */
 export const BOOKING_STATUS_PILL: Record<ViewingBookingStatus, string> = {
   requested: 'bg-pill-soft text-secondary',
@@ -84,4 +139,19 @@ export const SUBMISSION_STATUS_PILL: Record<PropertySubmissionStatus, string> = 
   visited: 'bg-pill-soft-mid text-ink',
   listed: 'bg-pill-soft-cool text-accent-deep',
   declined: 'bg-pill-soft text-neutral-muted',
+}
+
+export const CONTACT_STATUS_PILL: Record<ContactEnquiryStatus, string> = {
+  new: 'bg-pill-soft text-secondary',
+  contacted: 'bg-pill-soft-mid text-ink',
+  converted: 'bg-pill-soft-cool text-accent-deep',
+  closed: 'bg-pill-soft-mid text-neutral-muted',
+}
+
+export const SERVICE_STATUS_PILL: Record<ServiceEnquiryStatus, string> = {
+  new: 'bg-pill-soft text-secondary',
+  contacted: 'bg-pill-soft-mid text-ink',
+  quoted: 'bg-pill-soft-mid text-ink',
+  won: 'bg-pill-soft-cool text-accent-deep',
+  closed: 'bg-pill-soft-mid text-neutral-muted',
 }

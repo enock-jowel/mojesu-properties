@@ -58,3 +58,5 @@ next-env.d.ts
 .open-next/
 .next/
 out/
+.env*
+!.env.example

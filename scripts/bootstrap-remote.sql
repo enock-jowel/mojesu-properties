@@ -279,12 +279,7 @@ create policy "Staff can delete listing images"
   to authenticated
   using (public.is_staff());
 
--- viewing_bookings: public insert; staff read/update
-create policy "Anyone can create viewing bookings"
-  on public.viewing_bookings for insert
-  to anon, authenticated
-  with check (true);
-
+-- viewing_bookings: staff read/update (inserts via service-role API only)
 create policy "Staff can read viewing bookings"
   on public.viewing_bookings for select
   to authenticated
@@ -295,12 +290,7 @@ create policy "Staff can update viewing bookings"
   to authenticated
   using (public.is_staff());
 
--- property_submissions: public insert; staff read/update
-create policy "Anyone can create property submissions"
-  on public.property_submissions for insert
-  to anon, authenticated
-  with check (true);
-
+-- property_submissions: staff read/update (inserts via service-role API only)
 create policy "Staff can read property submissions"
   on public.property_submissions for select
   to authenticated

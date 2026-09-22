@@ -229,6 +229,7 @@ export const DEFAULT_NAV: NavContent = {
   header: [
     { label: 'Rent', href: '/rent/' },
     { label: 'Buy', href: '/buy/' },
+    { label: 'Areas', href: '/areas/' },
     { label: 'About', href: '/about/' },
     { label: 'Services', href: '/services/' },
     { label: 'Contact', href: '/#contact' },
@@ -242,6 +243,7 @@ export const DEFAULT_NAV: NavContent = {
     { label: 'Rent', href: '/rent/' },
     { label: 'Buy', href: '/buy/' },
     { label: 'Land', href: '/land/' },
+    { label: 'Areas', href: '/areas/' },
     { label: 'Services', href: '/services/' },
   ],
   footerCompany: [

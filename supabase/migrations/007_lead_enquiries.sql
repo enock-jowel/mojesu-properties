@@ -1,5 +1,6 @@
--- Contact + service enquiry lead tables (public insert, staff read/update)
--- Mirrors viewing_bookings / property_submissions RLS pattern.
+-- Contact + service enquiry lead tables.
+-- Inserts are performed by Next.js API routes using the service-role key.
+-- Migration 008 drops public INSERT policies; do not re-add anon INSERT here.
 
 create table if not exists public.contact_enquiries (
   id uuid primary key default gen_random_uuid(),
@@ -38,11 +39,7 @@ create index if not exists service_enquiries_created_at_idx
 alter table public.contact_enquiries enable row level security;
 alter table public.service_enquiries enable row level security;
 
-drop policy if exists "Public can insert contact enquiries" on public.contact_enquiries;
-create policy "Public can insert contact enquiries"
-  on public.contact_enquiries for insert
-  to anon, authenticated
-  with check (true);
+-- Inserts: service-role only (Next.js APIs). No anon INSERT policies.
 
 drop policy if exists "Staff can read contact enquiries" on public.contact_enquiries;
 create policy "Staff can read contact enquiries"
@@ -56,12 +53,6 @@ create policy "Staff can update contact enquiries"
   to authenticated
   using (public.is_staff());
 
-drop policy if exists "Public can insert service enquiries" on public.service_enquiries;
-create policy "Public can insert service enquiries"
-  on public.service_enquiries for insert
-  to anon, authenticated
-  with check (true);
-
 drop policy if exists "Staff can read service enquiries" on public.service_enquiries;
 create policy "Staff can read service enquiries"
   on public.service_enquiries for select
@@ -73,3 +64,7 @@ create policy "Staff can update service enquiries"
   on public.service_enquiries for update
   to authenticated
   using (public.is_staff());
+
+-- Idempotent: clear any legacy public INSERT policies if this file is re-run
+drop policy if exists "Public can insert contact enquiries" on public.contact_enquiries;
+drop policy if exists "Public can insert service enquiries" on public.service_enquiries;

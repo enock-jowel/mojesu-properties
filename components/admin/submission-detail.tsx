@@ -205,7 +205,7 @@ export function SubmissionDetail({
         </div>
       ) : (
         <p className="mt-6 text-xs text-neutral-muted">
-          Mark as contacted, visited, or listed to unlock “Create listing from this”.
+          Mark as visited or listed to unlock “Create listing from this”.
         </p>
       )}
     </div>

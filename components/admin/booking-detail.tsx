@@ -21,6 +21,7 @@ const TRANSITIONS: {
   { status: 'confirmed', label: 'Confirm', variant: 'primary' },
   { status: 'completed', label: 'Mark completed', variant: 'dark' },
   { status: 'declined', label: 'Decline', variant: 'dark' },
+  { status: 'expired', label: 'Mark expired', variant: 'dark' },
   { status: 'requested', label: 'Reset to requested', variant: 'dark' },
 ]
 
@@ -179,8 +180,9 @@ export function BookingDetail({
           <p className="mt-3 text-sm font-semibold text-secondary">{error}</p>
         ) : null}
         <p className="mt-3 text-xs text-neutral-muted">
-          Confirming sets confirmed time and a 14-day pass expiry. Email / WhatsApp
-          notifications from the public form stay unchanged — this inbox is additive.
+          Confirming sets confirmed time and pass expiry from CMS viewing
+          settings (pass days). Email / WhatsApp notifications from the public
+          form stay unchanged — this inbox is additive.
         </p>
       </section>
     </div>

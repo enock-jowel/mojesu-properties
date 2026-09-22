@@ -1,8 +1,7 @@
 /**
- * viewingBooking persistence — log only, no admin UI.
- *
- * Prefer Cloudflare D1 when bound. Falls back to console log so submissions
- * never fail solely because storage isn't wired yet.
+ * Viewing booking persistence interface + optional D1 adapter.
+ * Production path uses Supabase via createSupabaseBookingsStore.
+ * Missing store/d1 must fail closed in submitViewingBooking — no console success path.
  */
 
 import type { ViewingBooking } from './types'
@@ -11,7 +10,7 @@ export interface BookingsStore {
   insert(booking: ViewingBooking): Promise<void>
 }
 
-/** D1-shaped binding (Cloudflare Pages). */
+/** D1-shaped binding (Cloudflare Pages / optional). */
 export interface D1DatabaseLike {
   prepare(query: string): {
     bind(...values: unknown[]): {
@@ -40,15 +39,6 @@ export function createD1Store(db: D1DatabaseLike): BookingsStore {
           booking.requestedAt,
         )
         .run()
-    },
-  }
-}
-
-/** Dev / unset storage — keeps the pipeline working without D1. */
-export function createConsoleStore(): BookingsStore {
-  return {
-    async insert(booking) {
-      console.info('[viewingBooking]', JSON.stringify(booking))
     },
   }
 }

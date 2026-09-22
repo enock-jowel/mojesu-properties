@@ -107,16 +107,12 @@ export async function POST(request: Request) {
       },
     )
 
-    return json(result)
+    return json(result, result.ok ? 200 : 500)
   } catch (err) {
     console.error('[property-submissions API]', err)
-    const result = await submitPropertySubmission(
-      { ...body, photos: photos.map((_, i) => `photo-${i + 1}`) },
-      {
-        env: { ...env, SITE_URL: siteUrl },
-        newId: () => submissionId,
-      },
+    return json(
+      { ok: false, error: 'Unable to save submission. Please try again.' },
+      500,
     )
-    return json(result)
   }
 }

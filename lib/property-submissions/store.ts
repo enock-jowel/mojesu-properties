@@ -1,8 +1,7 @@
 /**
- * propertySubmission persistence — intake log only, no public listing.
- *
- * Prefer Cloudflare D1 when bound. Falls back to console log so submissions
- * never fail solely because storage isn't wired yet.
+ * Property submission persistence interface + optional D1 adapter.
+ * Production path uses Supabase via createSupabaseSubmissionsStore.
+ * Missing store/d1 must fail closed in submitPropertySubmission — no console success path.
  */
 
 import type { PropertySubmission } from './types'
@@ -11,7 +10,7 @@ export interface SubmissionsStore {
   insert(submission: PropertySubmission): Promise<void>
 }
 
-/** D1-shaped binding (Cloudflare Pages). */
+/** D1-shaped binding (Cloudflare Pages / optional). */
 export interface D1DatabaseLike {
   prepare(query: string): {
     bind(...values: unknown[]): {
@@ -51,19 +50,6 @@ export function createD1Store(db: D1DatabaseLike): SubmissionsStore {
           submission.submittedAt,
         )
         .run()
-    },
-  }
-}
-
-/** Dev / unset storage — keeps the pipeline working without D1. */
-export function createConsoleStore(): SubmissionsStore {
-  return {
-    async insert(submission) {
-      const logSafe = {
-        ...submission,
-        photos: `${submission.photos?.length ?? 0} photo(s)`,
-      }
-      console.info('[propertySubmission]', JSON.stringify(logSafe))
     },
   }
 }

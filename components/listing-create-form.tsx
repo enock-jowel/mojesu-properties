@@ -92,35 +92,7 @@ export function ListingCreateForm() {
         const data = (await res.json().catch(() => null)) as {
           error?: string
         } | null
-        // Local fallback when Pages Function is not running
-        if (res.status === 404 || res.status >= 500) {
-          const localStatus =
-            intent === 'publish' && validation.ok ? 'published' : 'draft'
-          try {
-            const key = 'mojesu:listings'
-            const prev = JSON.parse(localStorage.getItem(key) || '[]') as unknown[]
-            prev.unshift({
-              id: crypto.randomUUID(),
-              title: title.trim(),
-              images: photos.map((p) => p.src),
-              status: localStatus,
-              createdAt: new Date().toISOString(),
-            })
-            localStorage.setItem(key, JSON.stringify(prev.slice(0, 50)))
-          } catch {
-            /* ignore */
-          }
-          showToast(
-            localStatus === 'published'
-              ? 'Listing saved as published (local log)'
-              : 'Listing saved as draft (local log)',
-          )
-          setTitle('')
-          setPhotos([])
-          setTouched(false)
-          return
-        }
-        showToast(data?.error ?? 'Could not save listing')
+        showToast(data?.error ?? 'Could not save listing. Please try again.')
         return
       }
 

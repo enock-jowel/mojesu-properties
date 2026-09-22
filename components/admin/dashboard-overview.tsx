@@ -47,7 +47,7 @@ const BOOKING_COLORS = [
   CHART.muted,
   '#f43f5e',
 ]
-const SOURCE_COLORS = [CHART.primaryDark, CHART.primary]
+const SOURCE_COLORS = [CHART.primaryDark, CHART.primary, CHART.accent, CHART.mid]
 
 function formatUgx(n: number): string {
   if (n >= 1_000_000) return `UGX ${(n / 1_000_000).toFixed(1)}M`
@@ -317,6 +317,7 @@ export function DashboardOverview({ data }: { data: DashboardSnapshot }) {
   const sourceData = data.leads.sources.map((r) => ({
     name: r.label.replace(' form', '').replace(' bookings', ''),
     count: r.count,
+    href: r.href,
   }))
 
   const topBookedData = [...data.viewings.topProperties]
@@ -412,7 +413,7 @@ export function DashboardOverview({ data }: { data: DashboardSnapshot }) {
           label="Tracked leads"
           value={data.summary.totalLeadsTracked}
           href="/admin/requests/"
-          hint="Submissions + viewing bookings"
+          hint="Viewings, list-with-us, contact, services"
           icon={Inbox}
           accent={CHART.primaryDark}
         />
@@ -733,6 +734,18 @@ export function DashboardOverview({ data }: { data: DashboardSnapshot }) {
               </ResponsiveContainer>
             </div>
           )}
+          <ul className="mt-3 flex flex-wrap gap-x-4 gap-y-1.5">
+            {data.leads.sources.map((r) => (
+              <li key={r.key}>
+                <Link
+                  href={r.href || '/admin/requests/'}
+                  className="text-xs font-bold text-primary hover:text-primary-dark"
+                >
+                  {r.label} ({r.count})
+                </Link>
+              </li>
+            ))}
+          </ul>
         </Panel>
 
         <Panel

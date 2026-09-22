@@ -41,6 +41,7 @@ export function ListingsTable({
   const [category, setCategory] = useState<CmsCategory | 'all'>(initialCategory)
   const [mode, setMode] = useState<'rent' | 'sale' | 'all'>(initialMode)
   const [area, setArea] = useState(initialArea)
+  const [featured, setFeatured] = useState<'all' | 'yes' | 'no'>('all')
   const [q, setQ] = useState('')
 
   const areas = useMemo(
@@ -54,13 +55,15 @@ export function ListingsTable({
       if (category !== 'all' && l.category !== category) return false
       if (mode !== 'all' && l.listing_mode !== mode) return false
       if (area !== 'all' && l.area !== area) return false
+      if (featured === 'yes' && !l.is_featured) return false
+      if (featured === 'no' && l.is_featured) return false
       if (q.trim()) {
         const needle = q.trim().toLowerCase()
         if (!l.title.toLowerCase().includes(needle)) return false
       }
       return true
     })
-  }, [listings, status, category, mode, area, q])
+  }, [listings, status, category, mode, area, featured, q])
 
   const selectClass =
     'rounded-lg border border-neutral-light bg-surface-alt px-2.5 py-1.5 text-xs font-semibold text-ink outline-none focus:border-primary'
@@ -128,6 +131,17 @@ export function ListingsTable({
             </option>
           ))}
         </select>
+        <select
+          className={selectClass}
+          value={featured}
+          onChange={(e) =>
+            setFeatured(e.target.value as 'all' | 'yes' | 'no')
+          }
+        >
+          <option value="all">Featured: all</option>
+          <option value="yes">Featured only</option>
+          <option value="no">Not featured</option>
+        </select>
       </div>
 
       <ul className="mt-6 flex flex-col gap-3">
@@ -164,6 +178,11 @@ export function ListingsTable({
                     >
                       {row.status}
                     </span>
+                    {row.is_featured ? (
+                      <span className="rounded-full bg-pill-soft-cool px-2 py-0.5 text-[10px] font-bold uppercase tracking-wide text-accent-deep">
+                        Featured
+                      </span>
+                    ) : null}
                   </div>
                   <p className="mt-1 text-xs text-neutral-muted sm:text-sm">
                     {CATEGORY_LABEL[row.category]} ·{' '}

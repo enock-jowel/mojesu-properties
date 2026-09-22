@@ -6,10 +6,6 @@ import {
   type ContactEnquiryRow,
 } from './supabase-store'
 import type { SupabaseClient } from '@supabase/supabase-js'
-import {
-  isMissingRelationError,
-  persistLeadFallback,
-} from '@/lib/api/lead-fallback'
 
 export interface SubmitContactContext {
   env: NotifyEnv
@@ -38,33 +34,21 @@ export async function submitContactEnquiry(
     createdAt: now.toISOString(),
   }
 
-  if (ctx.supabase) {
-    try {
-      await createSupabaseContactStore(ctx.supabase).insert(row)
-    } catch (err) {
-      if (isMissingRelationError(err)) {
-        try {
-          await persistLeadFallback(ctx.supabase, 'contact', id, row)
-        } catch (fallbackErr) {
-          console.error('[contactEnquiry] fallback failed', fallbackErr)
-          return {
-            ok: false,
-            error:
-              fallbackErr instanceof Error
-                ? fallbackErr.message
-                : 'Store failed',
-          }
-        }
-      } else {
-        console.error('[contactEnquiry] store failed', err)
-        return {
-          ok: false,
-          error: err instanceof Error ? err.message : 'Store failed',
-        }
-      }
+  if (!ctx.supabase) {
+    return {
+      ok: false,
+      error: 'Unable to save enquiry. Please try again.',
     }
-  } else {
-    console.info('[contactEnquiry] no supabase — logged only', row)
+  }
+
+  try {
+    await createSupabaseContactStore(ctx.supabase).insert(row)
+  } catch (err) {
+    console.error('[contactEnquiry] store failed', err)
+    return {
+      ok: false,
+      error: err instanceof Error ? err.message : 'Unable to save enquiry.',
+    }
   }
 
   const emailResult = await sendContactEnquiryEmail(ctx.env, req).catch(

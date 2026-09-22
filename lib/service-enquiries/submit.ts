@@ -9,10 +9,6 @@ import type {
   ServiceEnquiryRequest,
   ServiceEnquirySubmitResult,
 } from './types'
-import {
-  isMissingRelationError,
-  persistLeadFallback,
-} from '@/lib/api/lead-fallback'
 
 export interface SubmitServiceEnquiryContext {
   env: NotifyEnv
@@ -42,33 +38,21 @@ export async function submitServiceEnquiry(
     createdAt: now.toISOString(),
   }
 
-  if (ctx.supabase) {
-    try {
-      await createSupabaseServiceEnquiryStore(ctx.supabase).insert(row)
-    } catch (err) {
-      if (isMissingRelationError(err)) {
-        try {
-          await persistLeadFallback(ctx.supabase, 'service', id, row)
-        } catch (fallbackErr) {
-          console.error('[serviceEnquiry] fallback failed', fallbackErr)
-          return {
-            ok: false,
-            error:
-              fallbackErr instanceof Error
-                ? fallbackErr.message
-                : 'Store failed',
-          }
-        }
-      } else {
-        console.error('[serviceEnquiry] store failed', err)
-        return {
-          ok: false,
-          error: err instanceof Error ? err.message : 'Store failed',
-        }
-      }
+  if (!ctx.supabase) {
+    return {
+      ok: false,
+      error: 'Unable to save enquiry. Please try again.',
     }
-  } else {
-    console.info('[serviceEnquiry] no supabase — logged only', row)
+  }
+
+  try {
+    await createSupabaseServiceEnquiryStore(ctx.supabase).insert(row)
+  } catch (err) {
+    console.error('[serviceEnquiry] store failed', err)
+    return {
+      ok: false,
+      error: err instanceof Error ? err.message : 'Unable to save enquiry.',
+    }
   }
 
   const emailResult = await sendServiceEnquiryEmail(ctx.env, req).catch(

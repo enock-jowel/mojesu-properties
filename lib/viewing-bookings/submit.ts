@@ -2,12 +2,12 @@
  * Submission handler — save DB log, then email.
  * WhatsApp is client-side only (wa.me link returned for BookingConfirmation).
  * Email failure must not block the database write.
+ * Persistence failure must not report success.
  */
 
 import { sendBookingEmail } from './email'
 import { shortenUrl } from './shorten'
 import {
-  createConsoleStore,
   type BookingsStore,
   type D1DatabaseLike,
   createD1Store,
@@ -50,16 +50,24 @@ export async function submitViewingBooking(
     requestedAt: now.toISOString(),
   }
 
-  // 1) Persist log first — notifications must not block this
-  const store =
-    ctx.store ?? (ctx.d1 ? createD1Store(ctx.d1) : createConsoleStore())
+  if (!ctx.store && !ctx.d1) {
+    return {
+      ok: false,
+      error: 'Unable to save booking. Please try again.',
+    }
+  }
+
+  const store = ctx.store ?? createD1Store(ctx.d1!)
   try {
     await store.insert(booking)
   } catch (err) {
     console.error('[viewingBooking] store failed', err)
+    return {
+      ok: false,
+      error: err instanceof Error ? err.message : 'Unable to save booking.',
+    }
   }
 
-  // Shorten listing URLs when Bitly is available (keeps wa.me message lean)
   const properties: ViewingBookingPropertyRef[] = await Promise.all(
     ctx.properties.map(async (p) => ({
       ...p,
@@ -67,7 +75,6 @@ export async function submitViewingBooking(
     })),
   )
 
-  // 2) Email only — WhatsApp is a client wa.me CTA, not a server send
   const emailResult = await sendBookingEmail(ctx.env, req, properties).catch(
     (err) => ({
       sent: false as const,

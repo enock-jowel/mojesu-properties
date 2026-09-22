@@ -82,18 +82,29 @@ export async function getFormsContent(): Promise<FormsContent> {
   return fetchKey('forms')
 }
 
-function withoutAreasLinks(nav: NavContent): NavContent {
-  const keep = (href: string) => !href.includes('/areas')
-  return {
-    ...nav,
-    header: nav.header.filter((l) => keep(l.href)),
-    footerMenu: nav.footerMenu.filter((l) => keep(l.href)),
-    footerCompany: nav.footerCompany.filter((l) => keep(l.href)),
-  }
+export async function getNavContent(): Promise<NavContent> {
+  return ensureAreasNavLinks(await fetchKey('nav'))
 }
 
-export async function getNavContent(): Promise<NavContent> {
-  return withoutAreasLinks(await fetchKey('nav'))
+/** Keep Areas in header/footer even if CMS nav was seeded before guides shipped. */
+function ensureAreasNavLinks(nav: NavContent): NavContent {
+  const hasAreas = (links: { href: string }[]) =>
+    links.some((l) => l.href.includes('/areas'))
+  const areasLink = { label: 'Areas', href: '/areas/' }
+
+  let header = nav.header
+  if (!hasAreas(header)) {
+    const buyIdx = header.findIndex((l) => l.href.startsWith('/buy'))
+    header = [...header]
+    header.splice(buyIdx >= 0 ? buyIdx + 1 : Math.min(2, header.length), 0, areasLink)
+  }
+
+  let footerMenu = nav.footerMenu
+  if (!hasAreas(footerMenu)) {
+    footerMenu = [...footerMenu, areasLink]
+  }
+
+  return { ...nav, header, footerMenu }
 }
 
 async function loadSiteCatalog(): Promise<SiteCatalog> {

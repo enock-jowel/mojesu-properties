@@ -70,8 +70,8 @@ export function NotificationSettings({
     >
       <h2 className="text-base font-extrabold text-ink">Notifications</h2>
       <p className="mt-1 text-xs text-neutral-muted">
-        Where viewing bookings and list-with-us submissions are sent. Env vars
-        remain a fallback until this is saved.
+        Where viewing bookings, list-with-us, contact, and service enquiries are
+        sent. Env vars remain a fallback until this is saved.
       </p>
 
       <div className="mt-4 space-y-3">
@@ -86,7 +86,8 @@ export function NotificationSettings({
             required
           />
           <p className="mt-1 text-[11px] text-neutral-muted">
-            Receives booking and property-submission alert emails.
+            Receives all lead alert emails (bookings, submissions, contact,
+            services).
           </p>
         </div>
         <div>

@@ -31,16 +31,15 @@ Mojesu is a Kampala property website where visitors can browse homes and land fo
 
 | Area | Status |
 |------|--------|
-| Browse listings from database | Working (local DB has published inventory) |
-| Viewing booking + List with us APIs | Working when API + Supabase are up; silent local fallback if API fails |
-| CMS listings / requests / content / site copy | Working for staff |
-| Contact form on the homepage | **Not real** — shows success without sending or saving |
-| Service enquiry form | **Not real** — same fake success |
+| Browse listings from database | Working |
+| Viewing / List-with-us / Contact / Service enquiry APIs | Working — persist to Supabase; fail closed on store errors (no silent success / no public Storage PII fallback) |
+| CMS listings / requests / content / site copy | Working for staff (Requests inbox: bookings, submissions, contact, services) |
+| Featured listings (`is_featured`) | Working — CMS editor toggle + home/browse filter |
 | Multi-listing “viewing cart” page | **Not built** — booking is one listing at a time |
 | Archive listing from the editor | Status exists in data model; **no Archive button** in UI |
 
 **The single most important thing to know:**  
-Two high-visibility lead forms — **homepage Contact** and **service enquiry** — look successful to visitors but currently do **nothing** for the business (no email, no database row). Viewing bookings and List-with-us *do* persist. Until Contact and Service enquiry are wired the same way, those leads will be lost.
+Lead forms (viewing, list-with-us, contact, service) require a live Supabase insert. If migration `007` is missing or the insert fails, visitors see an error — they are not told “success” while the lead is dropped.
 
 ---
 
@@ -72,6 +71,8 @@ Verified by reading each `app/**/page.tsx` outside `admin/`.
 |------|---------|
 | `POST /api/viewing-bookings` | Persist booking, optional Resend email, return `wa.me` URL — `app/api/viewing-bookings/route.ts` |
 | `POST /api/property-submissions` | Persist list-with-us lead, photos, email, `wa.me` — `app/api/property-submissions/route.ts` |
+| `POST /api/contact-enquiries` | Persist contact lead + optional email — `app/api/contact-enquiries/route.ts` |
+| `POST /api/service-enquiries` | Persist service enquiry + optional email — `app/api/service-enquiries/route.ts` |
 
 There is **no** public `/viewings`, favorites, or multi-listing booking cart page under `app/`.
 
@@ -110,9 +111,9 @@ Heart icons on cards are **in-memory only** (session state); they are not a save
 
 **Works today?** Yes when the Next API and Supabase are healthy. Caveats:
 
-1. If the API fails, the client still returns success and stores a copy in **localStorage** (`client-submit.ts`) — the visitor sees “success” but the business may get nothing.  
+1. If the API or store insert fails, the client shows an error (`ok: false`) — no localStorage fake success.  
 2. Email is skipped (not thrown) when `RESEND_API_KEY` or notify email is missing (`lib/viewing-bookings/email.ts`).  
-3. Store insert errors are logged; the submit path can still report `ok: true` (`lib/viewing-bookings/submit.ts`).
+3. Missing store/d1 or insert errors return `ok: false` from `submitViewingBooking`.
 
 **Live DB check (local):** 2 rows in `viewing_bookings` — confirms the path has been exercised.
 
@@ -133,19 +134,21 @@ Heart icons on cards are **in-memory only** (session state); they are not a save
 
 | Step | Code path |
 |------|-----------|
-| UI | `ContactSection` / `ContactEnquiryForm` — `components/contact-section.tsx` |
-| Submit | `confirmSend` waits ~400ms, shows toast, marks done — **no `fetch`, no API, no DB** (lines 118–129) |
+| UI | `ContactSection` — `components/contact-section.tsx` |
+| Client | `lib/contact-enquiries/client-submit.ts` → `POST /api/contact-enquiries` |
+| Server | Insert `contact_enquiries` (requires migration `007`) → optional Resend |
 
-**Works today?** **No.** It is a UI stub that fakes success. Copy is CMS-editable under `forms.contact`; delivery is not implemented.
+**Works today?** Yes when Supabase + `007` are applied. Fail closed on insert errors. Staff inbox for these leads is PR2.
 
 #### B2.5 Service enquiry
 
 | Step | Code path |
 |------|-----------|
-| UI | `ServiceEnquiryForm` on `components/service-enquiry-form.tsx` |
-| Submit | `setTimeout` + toast — no persistence |
+| UI | `ServiceEnquiryForm` — `components/service-enquiry-form.tsx` |
+| Client | `lib/service-enquiries/client-submit.ts` → `POST /api/service-enquiries` |
+| Server | Insert `service_enquiries` → optional Resend |
 
-**Works today?** **No.** Same class of stub as contact.
+**Works today?** Same pattern as contact. Staff inbox for these leads is PR2.
 
 ---
 
@@ -427,7 +430,7 @@ Variables documented in `.env.example`:
 - Auth `site_url` in `supabase/config.toml` points at `127.0.0.1:3000` for local  
 - Invite redirect fallback `http://localhost:3000` in settings actions  
 - Middleware open if Supabase env missing  
-- Client booking/submission localStorage fallback masking API outages  
+- Prefer fail-closed lead APIs (no client localStorage success masking)  
 
 ---
 
@@ -437,37 +440,34 @@ Variables documented in `.env.example`:
 
 | Item | Evidence |
 |------|----------|
-| Contact form persistence / notify | Stub `setTimeout` only — `contact-section.tsx` L118–129 |
-| Service enquiry persistence / notify | Stub in `service-enquiry-form.tsx` |
+| Contact / service enquiry **admin inbox** | Wired — `/admin/requests/?tab=contact|services` + detail pages |
 | Multi-listing viewing cart / public viewing list page | No route; UI books one listing |
 | Listing archive UI | Status in schema; no editor control |
 | Listing delete | No action |
 | Bulk listing operations / duplicate | Absent |
 | Cloudflare `functions/api/listings.ts` | Stub — does not persist |
 | CMS copy vs CMS `passDays` in booking detail | Hardcoded “14-day” wording risk |
-| Favorites persistence | In-memory hearts only |
 | Middleware role gate | Login-only; staff check is action-level |
 
 ### E2. Risks
 
-1. **Silent lead loss** — Contact & service enquiry fake success; booking/submission clients also fake success on API failure via localStorage.  
-2. **Open public INSERT** on `viewing_bookings` / `property_submissions` with `WITH CHECK (true)` — spam/abuse with no rate limit or CAPTCHA (`001` RLS).  
-3. **CORS `*`** on public APIs.  
-4. **Authz at the edge** — any Supabase user can open admin UI; rely on action/RLS for denial.  
-5. **Publish validation mismatch** — UI blockers thinner than server; staff may hit late errors.  
-6. **Concurrent edit** — last save wins; image replace deletes-then-inserts (`lib/listings/actions.ts`) — race can drop images.  
-7. **Dual notify paths** — Next API uses DB+env; CF Functions env-only — config can diverge.  
-8. **Service role in API routes** — correct pattern if keys stay server-only; catastrophic if leaked to client.
+1. **Open public INSERT** on lead tables with `WITH CHECK (true)` — spam/abuse; APIs have rate limit + honeypot (Turnstile optional). Hardening is PR4.  
+2. **CORS `*`** on public APIs.  
+3. **Authz at the edge** — any Supabase user can open admin UI; rely on action/RLS for denial.  
+4. **Publish validation mismatch** — UI blockers thinner than server; staff may hit late errors.  
+5. **Concurrent edit** — last save wins; image replace deletes-then-inserts (`lib/listings/actions.ts`) — race can drop images.  
+6. **Service role in API routes** — correct pattern if keys stay server-only; catastrophic if leaked to client.
 
 ### E3. Recommended next steps (priority)
 
-1. **Wire Contact and Service enquiry** to the same persist + email + WhatsApp pattern as viewings/submissions — highest business impact.  
-2. **Stop silent success on API failure** — show a clear error if booking/submission did not reach the server; drop or clearly label localStorage-only fallback.  
-3. **Add abuse protection** on public INSERT APIs (rate limit and/or Turnstile).  
+1. **Apply `008` on live Supabase (mdbx)** if not yet run — removes anon INSERT on lead tables.  
+2. **Confirm Resend + WhatsApp** on production notify settings.  
+3. **Replace demo seed listings** with real inventory (see `docs/ops-debt-closure.md`).  
 4. **Enforce staff role in middleware or `(app)` layout** so non-staff accounts never see CMS chrome.  
-5. **Align UI publish blockers with server rules**; add Archive control if archival is part of ops.  
-6. **Unify notify config** so CF Functions (if still used) also read `notification_settings`.  
-7. **Production deploy checklist** — Node host for Next, all migrations `001`–`005`, Resend domain, WhatsApp number, Supabase Auth site URL, no empty-env middleware bypass.
+5. **Align UI publish blockers with server rules**; optional Archive control polish.  
+6. **Production checklist** — Node host for Next, migrations through `008`, Resend domain, WhatsApp number, Supabase Auth site URL, no empty-env middleware bypass.
+
+~~Completed in-repo:~~ fail-closed leads, Requests inbox (all four types), public `/areas/` guides, featured CMS toggle, Storage lead-fallback removed.
 
 ---
 
@@ -479,11 +479,11 @@ Variables documented in `.env.example`:
 | Listing data | `lib/properties.ts`, `lib/listings/queries.ts` |
 | Viewing pipeline | `components/viewing-booking-form.tsx`, `app/api/viewing-bookings/route.ts`, `lib/viewing-bookings/*` |
 | List-with-us pipeline | `components/list-with-us-form.tsx`, `app/api/property-submissions/route.ts` |
-| Contact stub | `components/contact-section.tsx` L118–129 |
+| Contact form | `components/contact-section.tsx` → `/api/contact-enquiries` |
 | Admin auth | `middleware.ts`, `lib/admin/auth.ts` |
 | Publish rules | `lib/listing-validation.ts`, `lib/listings/actions.ts` |
 | Site CMS | `lib/site-content/*`, `app/admin/(app)/content/site/*` |
-| Schema | `supabase/migrations/001`–`005` |
+| Schema | `supabase/migrations/001`–`008` |
 | Design tokens | `app/globals.css` L3–54 |
 | Env template | `.env.example` |
 

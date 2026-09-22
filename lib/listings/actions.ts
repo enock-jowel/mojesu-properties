@@ -3,47 +3,11 @@
 import { revalidatePath, revalidateTag } from 'next/cache'
 import { createClient } from '@/lib/supabase/server'
 import { requireStaff, type ActionResult } from '@/lib/admin/auth'
-import { assertCanPublish } from '@/lib/listing-validation'
+import { publishBlocked } from '@/lib/listings/publish'
 import { slugifyTitle } from '@/lib/listings/map'
 import type { ListingWriteInput, ListingRow } from '@/lib/listings/types'
 
 export type { ActionResult }
-
-function publishBlocked(input: ListingWriteInput): string | null {
-  const gate = assertCanPublish(input.images)
-  if (!gate.allowed) return gate.error
-
-  const hasCover = input.images.some((i) => i.is_cover)
-  if (!hasCover) return 'Select a cover photo before publishing.'
-
-  if (input.listing_mode === 'sale' && !input.title_status) {
-    return 'Title status is required for sale listings.'
-  }
-
-  if (!input.title.trim()) return 'Title is required.'
-  if (!input.area.trim()) return 'Area is required.'
-
-  if (input.category === 'land') {
-    if (!input.plot_dimensions?.trim() && !input.plot_size_total?.trim()) {
-      return 'Plot dimensions or total size is required for land.'
-    }
-    if (!input.title_status) return 'Title status is required for land.'
-    if (!input.encumbrances?.trim()) {
-      return 'Encumbrances is required (use “None known” if none).'
-    }
-  }
-
-  if (input.category === 'house' || input.category === 'apartment') {
-    if (input.bedrooms == null) return 'Bedrooms is required.'
-    if (input.bathrooms == null) return 'Bathrooms is required.'
-  }
-
-  if (input.category === 'commercial' && input.floor_area == null && input.size_sqm == null) {
-    return 'Floor area is required for commercial.'
-  }
-
-  return null
-}
 
 function toRow(
   input: ListingWriteInput,
@@ -97,15 +61,25 @@ function toRow(
     highlights: (input.highlights ?? []).slice(0, 3),
     amenities: input.amenities ?? [],
     location_notes: input.location_notes ?? null,
-    is_featured: Boolean(input.is_featured),
     updated_at: new Date().toISOString(),
     updated_by: userId,
   }
 
+  // Only write is_featured when explicitly provided — omit on update so
+  // another caller can't wipe featured by leaving the field undefined.
+  const withFeatured =
+    input.is_featured === undefined
+      ? base
+      : { ...base, is_featured: Boolean(input.is_featured) }
+
   if (mode === 'insert') {
-    return { ...base, created_by: userId }
+    return {
+      ...withFeatured,
+      is_featured: Boolean(input.is_featured),
+      created_by: userId,
+    }
   }
-  return base
+  return withFeatured
 }
 
 async function replaceImages(

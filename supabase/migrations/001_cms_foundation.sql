@@ -279,7 +279,7 @@ create policy "Staff can delete listing images"
   to authenticated
   using (public.is_staff());
 
--- viewing_bookings: public insert; staff read/update
+-- viewing_bookings: staff read/update (anon INSERT dropped in 008; APIs use service role)
 create policy "Anyone can create viewing bookings"
   on public.viewing_bookings for insert
   to anon, authenticated

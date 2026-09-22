@@ -120,13 +120,12 @@ export async function POST(request: Request) {
       store,
     })
 
-    return json(result)
+    return json(result, result.ok ? 200 : 500)
   } catch (err) {
     console.error('[viewing-bookings API]', err)
-    const result = await submitViewingBooking(body, {
-      env: { ...env, SITE_URL: siteUrl },
-      properties,
-    })
-    return json(result)
+    return json(
+      { ok: false, error: 'Unable to save booking. Please try again.' },
+      500,
+    )
   }
 }

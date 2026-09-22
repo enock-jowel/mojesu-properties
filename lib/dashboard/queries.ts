@@ -122,6 +122,8 @@ export async function buildDashboardSnapshot(range?: {
     listingLean,
     bookingLean,
     submissionLean,
+    contactLean,
+    serviceLean,
     draftImages,
     profiles,
     authUsersResult,
@@ -142,6 +144,8 @@ export async function buildDashboardSnapshot(range?: {
     sb
       .from('property_submissions')
       .select('id, status, submitted_at, area, category'),
+    sb.from('contact_enquiries').select('id, status, created_at'),
+    sb.from('service_enquiries').select('id, status, created_at'),
     sb
       .from('listings')
       .select('id, title, slug, listing_images ( id )')
@@ -161,6 +165,12 @@ export async function buildDashboardSnapshot(range?: {
       `Property submissions query: ${submissionLean.error.message}`,
     )
   }
+  if (contactLean.error) {
+    throw new Error(`Contact enquiries query: ${contactLean.error.message}`)
+  }
+  if (serviceLean.error) {
+    throw new Error(`Service enquiries query: ${serviceLean.error.message}`)
+  }
   if (draftImages.error) {
     throw new Error(`Draft images query: ${draftImages.error.message}`)
   }
@@ -171,6 +181,8 @@ export async function buildDashboardSnapshot(range?: {
   const listings = listingLean.data || []
   const bookings = bookingLean.data || []
   const submissions = submissionLean.data || []
+  const contactEnquiries = contactLean.data || []
+  const serviceEnquiries = serviceLean.data || []
   const nameById = new Map(
     (profiles.data || []).map((p) => [
       p.id as string,
@@ -267,6 +279,12 @@ export async function buildDashboardSnapshot(range?: {
   )
   const bookingsInRange = bookings.filter((b) =>
     inRange(b.requested_at as string, dateFrom, dateTo),
+  )
+  const contactInRange = contactEnquiries.filter((c) =>
+    inRange(c.created_at as string, dateFrom, dateTo),
+  )
+  const servicesInRange = serviceEnquiries.filter((s) =>
+    inRange(s.created_at as string, dateFrom, dateTo),
   )
 
   const subStatusMap = countBy(submissionsInRange, (s) => s.status as string)
@@ -411,8 +429,14 @@ export async function buildDashboardSnapshot(range?: {
 
   const totalLeadsTracked =
     dateFrom || dateTo
-      ? submissionsInRange.length + bookingsInRange.length
-      : submissions.length + bookings.length
+      ? submissionsInRange.length +
+        bookingsInRange.length +
+        contactInRange.length +
+        servicesInRange.length
+      : submissions.length +
+        bookings.length +
+        contactEnquiries.length +
+        serviceEnquiries.length
 
   return {
     generatedAt: new Date().toISOString(),
@@ -489,17 +513,26 @@ export async function buildDashboardSnapshot(range?: {
             dateFrom || dateTo ? bookingsInRange.length : bookings.length,
           href: '/admin/requests/?tab=bookings',
         },
+        {
+          key: 'contact',
+          label: 'Contact form',
+          count:
+            dateFrom || dateTo
+              ? contactInRange.length
+              : contactEnquiries.length,
+          href: '/admin/requests/?tab=contact',
+        },
+        {
+          key: 'services',
+          label: 'Service enquiries',
+          count:
+            dateFrom || dateTo
+              ? servicesInRange.length
+              : serviceEnquiries.length,
+          href: '/admin/requests/?tab=services',
+        },
       ],
       gaps: [
-        {
-          title: 'Contact + service enquiries (migration)',
-          reason:
-            'APIs are wired (app/api/contact-enquiries, service-enquiries). Apply supabase/migrations/007_lead_enquiries.sql on the hosted project if tables are missing.',
-          needs: [
-            'Run 007_lead_enquiries.sql in Supabase SQL Editor (or scripts/apply-lead-enquiries-migration.ts with SUPABASE_DB_URL)',
-            'Set RESEND_API_KEY on Vercel (free tier) so notify mail leaves Resend',
-          ],
-        },
         {
           title: 'Failed / undelivered enquiry logging',
           reason:

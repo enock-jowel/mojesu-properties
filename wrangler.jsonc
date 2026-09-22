@@ -14,7 +14,6 @@
   "vars": {
     "NEXT_PUBLIC_SITE_URL": "https://mojesu-preview.learnandlunch.workers.dev",
     "SITE_URL": "https://mojesu-preview.learnandlunch.workers.dev",
-    "NEXT_PUBLIC_SUPABASE_URL": "https://tbrbirakvdlrfndhmlmm.supabase.co",
-    "NEXT_PUBLIC_SUPABASE_ANON_KEY": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InRicmJpcmFrdmRscmZuZGhtbG1tIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODQzNzUzODAsImV4cCI6MjA5OTk1MTM4MH0.WnUEx_tvE9QBGx8H1_fXikJE7fXrq12xHiuxIs3VpQg"
+    "NEXT_PUBLIC_SUPABASE_URL": "https://mdbxvcjyawgtzpingquq.supabase.co"
   }
 }

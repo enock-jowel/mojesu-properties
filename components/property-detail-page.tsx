@@ -18,6 +18,7 @@ import {
   useTaxonomy,
 } from '@/components/site-catalog-provider'
 import { useFavorites } from '@/lib/favorites'
+import { getAreaGuideByName, getTierGuide } from '@/lib/area-guides'
 
 const DESC_COLLAPSE_CHARS = 320
 
@@ -49,6 +50,9 @@ export function PropertyDetailPage({
       : item.category === 'land'
         ? '/land/'
         : '/buy/'
+
+  const areaGuide = getAreaGuideByName(item.area)
+  const tierGuide = getTierGuide(item.areaTier)
 
   return (
     <article className="site-container pb-28 pt-5 sm:pt-12 lg:pb-12">
@@ -100,6 +104,27 @@ export function PropertyDetailPage({
           </h1>
           <p className="mt-1 text-sm text-neutral-muted sm:mt-2 sm:text-[15px]">
             {kindLabel} · {item.area}, {item.city}
+            {areaGuide ? (
+              <>
+                {' · '}
+                <Link
+                  href={`/areas/${areaGuide.slug}/`}
+                  className="font-semibold text-primary-dark underline-offset-2 hover:underline"
+                >
+                  Area guide
+                </Link>
+              </>
+            ) : tierGuide ? (
+              <>
+                {' · '}
+                <Link
+                  href={`/areas/tier/${tierGuide.slug}/`}
+                  className="font-semibold text-primary-dark underline-offset-2 hover:underline"
+                >
+                  {tierGuide.title}
+                </Link>
+              </>
+            ) : null}
           </p>
           {item.updatedAt ? (
             <p className="mt-1 text-[12px] text-neutral-muted/80">

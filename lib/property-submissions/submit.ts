@@ -2,13 +2,13 @@
  * Submission handler — save DB log, then email.
  * WhatsApp is client-side only (wa.me link returned for confirmation).
  * Email failure must not block the database write.
+ * Persistence failure must not report success.
  * Does NOT create a public listing.
  */
 
 import type { NotifyEnv } from '@/lib/viewing-bookings'
 import { sendSubmissionEmail } from './email'
 import {
-  createConsoleStore,
   type SubmissionsStore,
   type D1DatabaseLike,
   createD1Store,
@@ -61,12 +61,23 @@ export async function submitPropertySubmission(
     submittedAt: now.toISOString(),
   }
 
-  const store =
-    ctx.store ?? (ctx.d1 ? createD1Store(ctx.d1) : createConsoleStore())
+  if (!ctx.store && !ctx.d1) {
+    return {
+      ok: false,
+      error: 'Unable to save submission. Please try again.',
+    }
+  }
+
+  const store = ctx.store ?? createD1Store(ctx.d1!)
   try {
     await store.insert(submission)
   } catch (err) {
     console.error('[propertySubmission] store failed', err)
+    return {
+      ok: false,
+      error:
+        err instanceof Error ? err.message : 'Unable to save submission.',
+    }
   }
 
   const emailPayload: PropertySubmissionRequest = {

@@ -74,7 +74,9 @@ export async function POST(request: Request) {
     return json(result, result.ok ? 200 : 500)
   } catch (err) {
     console.error('[contact-enquiries API]', err)
-    const result = await submitContactEnquiry(body, { env })
-    return json(result, result.ok ? 200 : 500)
+    return json(
+      { ok: false, error: 'Unable to save enquiry. Please try again.' },
+      500,
+    )
   }
 }

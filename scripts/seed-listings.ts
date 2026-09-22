@@ -2,9 +2,13 @@
  * One-time seed: load scripts/seed-data/properties-catalog into Supabase
  * `listings` + `listing_images`.
  *
+ * NOTE: This catalog is **demo / bootstrap inventory**, not production client stock.
+ * Archive or replace rows before treating the site as live inventory.
+ *
  * Prerequisites:
- *   - Run supabase/migrations/001_cms_foundation.sql
- *   - Set NEXT_PUBLIC_SUPABASE_URL + SUPABASE_SERVICE_ROLE_KEY in .env.local
+ *   - Run supabase/migrations/001_cms_foundation.sql (+ later migrations as needed)
+ *   - Set NEXT_PUBLIC_SUPABASE_URL + SUPABASE_SERVICE_ROLE_KEY
+ *     (prefer .env.mdbx.local / production mdbx project — not retired tbrbir)
  *
  * Usage:
  *   pnpm seed:listings
