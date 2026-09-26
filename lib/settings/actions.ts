@@ -2,6 +2,7 @@
 
 import { revalidatePath } from 'next/cache'
 import {
+  isAdminRole,
   requireAdmin,
   requireStaff,
   type ActionResult,
@@ -107,6 +108,7 @@ export async function inviteTeamMember(input: {
   if (!email || !email.includes('@')) {
     return { ok: false, error: 'Enter a valid email address.' }
   }
+  // Invites are admin|staff only; superadmin is provisioned out-of-band.
   if (!['admin', 'staff'].includes(input.role)) {
     return { ok: false, error: 'Invalid role.' }
   }
@@ -152,11 +154,18 @@ export async function updateTeamMemberRole(
 
   if (!target) return { ok: false, error: 'Team member not found.' }
 
-  if (target.role === 'admin' && role === 'staff') {
+  if (target.role === 'superadmin' || role === 'superadmin') {
+    return {
+      ok: false,
+      error: 'Superadmin role can only be changed via database provision.',
+    }
+  }
+
+  if (isAdminRole(target.role) && role === 'staff') {
     const { count } = await admin
       .from('profiles')
       .select('id', { count: 'exact', head: true })
-      .eq('role', 'admin')
+      .in('role', ['superadmin', 'admin'])
 
     if ((count ?? 0) <= 1) {
       return {
@@ -194,11 +203,15 @@ export async function removeTeamMember(userId: string): Promise<ActionResult> {
 
   if (!target) return { ok: false, error: 'Team member not found.' }
 
-  if (target.role === 'admin') {
+  if (target.role === 'superadmin') {
+    return { ok: false, error: 'Cannot remove the superadmin account.' }
+  }
+
+  if (isAdminRole(target.role)) {
     const { count } = await admin
       .from('profiles')
       .select('id', { count: 'exact', head: true })
-      .eq('role', 'admin')
+      .in('role', ['superadmin', 'admin'])
 
     if ((count ?? 0) <= 1) {
       return {

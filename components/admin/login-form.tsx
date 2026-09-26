@@ -12,10 +12,15 @@ export function AdminLoginForm() {
   const router = useRouter()
   const searchParams = useSearchParams()
   const next = searchParams.get('next') || '/admin/listings/'
+  const configError = searchParams.get('error') === 'config'
 
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
-  const [error, setError] = useState<string | null>(null)
+  const [error, setError] = useState<string | null>(
+    configError
+      ? 'Server is missing Supabase config. Admin is locked until env is set.'
+      : null,
+  )
   const [submitting, setSubmitting] = useState(false)
 
   async function onSubmit(e: React.FormEvent) {

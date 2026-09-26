@@ -13,7 +13,7 @@
 | Resend (`jowelnionzima@gmail.com`) | | | | API key also in Vercel |
 | Zoho Mail admin (`jowelnionzima@gmail.com`) | | | | |
 | Zoho mailbox `hello@mojesuproperties.com` | | | | |
-| Domain registrar *(name: ______)* | | | | DNS for mojesuproperties.com |
+| Domain registrar *(Name.com)* | | | | DNS for mojesuproperties.com — panel name.com; NS usually Vercel |
 | Cloudflare (if used) | | | | Workers / DNS |
 | Google Cloud (Places) | | | | API key |
 | Google Business Profile | | | | When created |

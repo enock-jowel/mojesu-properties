@@ -1,6 +1,7 @@
 import type { ReactNode } from 'react'
 import { redirect } from 'next/navigation'
 import { AdminShell } from '@/components/admin/admin-shell'
+import { isStaffRole } from '@/lib/admin/auth'
 import { createClient } from '@/lib/supabase/server'
 
 export default async function AdminAppLayout({
@@ -23,7 +24,7 @@ export default async function AdminAppLayout({
     .eq('id', user.id)
     .maybeSingle()
 
-  if (!profile || !['staff', 'admin'].includes(profile.role)) {
+  if (!profile || !isStaffRole(profile.role)) {
     redirect('/admin/login/')
   }
 

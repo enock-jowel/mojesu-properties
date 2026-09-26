@@ -7,7 +7,7 @@ export async function listTeamMembers(): Promise<TeamMember[]> {
   const { data: profiles, error } = await admin
     .from('profiles')
     .select('id, full_name, role, created_at')
-    .in('role', ['admin', 'staff'])
+    .in('role', ['superadmin', 'admin', 'staff'])
     .order('created_at', { ascending: true })
 
   if (error || !profiles) return []

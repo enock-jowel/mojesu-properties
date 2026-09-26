@@ -16,9 +16,11 @@ import { showToast } from '@/lib/toast'
 
 function RolePill({ role }: { role: StaffRole }) {
   const cls =
-    role === 'admin'
-      ? 'bg-pill-soft-cool text-accent-deep'
-      : 'bg-pill-soft text-secondary'
+    role === 'superadmin'
+      ? 'bg-primary/15 text-primary-dark'
+      : role === 'admin'
+        ? 'bg-pill-soft-cool text-accent-deep'
+        : 'bg-pill-soft text-secondary'
   return (
     <span
       className={`rounded-full px-2 py-0.5 text-[10px] font-bold uppercase tracking-wide ${cls}`}
@@ -62,7 +64,9 @@ export function TeamSettings({
   const [busyId, setBusyId] = useState<string | null>(null)
 
   const adminCount = useMemo(
-    () => members.filter((m) => m.role === 'admin').length,
+    () =>
+      members.filter((m) => m.role === 'admin' || m.role === 'superadmin')
+        .length,
     [members],
   )
 
@@ -151,7 +155,11 @@ export function TeamSettings({
       <ul className="divide-y divide-neutral-light/80 overflow-hidden rounded-2xl border border-neutral-light/80 bg-surface-alt/30">
         {members.map((m) => {
           const isSelf = m.id === currentUserId
-          const demoteBlocked = m.role === 'admin' && adminCount <= 1
+          const isSuper = m.role === 'superadmin'
+          const demoteBlocked =
+            isSuper ||
+            ((m.role === 'admin' || m.role === 'superadmin') &&
+              adminCount <= 1)
           return (
             <li
               key={m.id}
@@ -177,21 +185,27 @@ export function TeamSettings({
                 </p>
               </div>
               <div className="flex shrink-0 items-center gap-2">
-                <select
-                  className={`${fieldClass} w-auto min-w-[7.5rem] py-1.5 text-xs`}
-                  value={m.role}
-                  disabled={busyId === m.id || demoteBlocked}
-                  onChange={(e) =>
-                    void onRoleChange(m.id, e.target.value as StaffRole)
-                  }
-                  aria-label={`Role for ${m.email}`}
-                >
-                  <option value="staff">staff</option>
-                  <option value="admin">admin</option>
-                </select>
+                {isSuper ? (
+                  <span className="min-w-[7.5rem] px-2 py-1.5 text-xs font-semibold text-neutral-muted">
+                    superadmin
+                  </span>
+                ) : (
+                  <select
+                    className={`${fieldClass} w-auto min-w-[7.5rem] py-1.5 text-xs`}
+                    value={m.role}
+                    disabled={busyId === m.id || demoteBlocked}
+                    onChange={(e) =>
+                      void onRoleChange(m.id, e.target.value as StaffRole)
+                    }
+                    aria-label={`Role for ${m.email}`}
+                  >
+                    <option value="staff">staff</option>
+                    <option value="admin">admin</option>
+                  </select>
+                )}
                 <button
                   type="button"
-                  disabled={isSelf || busyId === m.id}
+                  disabled={isSelf || isSuper || busyId === m.id}
                   onClick={() => setRemovingId(m.id)}
                   className="rounded-lg p-2 text-neutral-muted transition-colors hover:bg-red-50 hover:text-red-600 disabled:cursor-not-allowed disabled:opacity-40"
                   aria-label={`Remove ${m.email}`}
@@ -199,7 +213,7 @@ export function TeamSettings({
                   <Trash2 className="h-4 w-4" strokeWidth={2} />
                 </button>
               </div>
-              {demoteBlocked && isSelf ? (
+              {demoteBlocked && isSelf && !isSuper ? (
                 <p className="text-[11px] font-medium text-neutral-muted sm:basis-full">
                   You are the only admin — promote someone else before changing
                   your role.

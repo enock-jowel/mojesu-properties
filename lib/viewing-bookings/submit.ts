@@ -6,6 +6,7 @@
  */
 
 import { sendBookingEmail } from './email'
+import { sendWithRetry } from '@/lib/api/email-retry'
 import { shortenUrl } from './shorten'
 import {
   type BookingsStore,
@@ -64,7 +65,7 @@ export async function submitViewingBooking(
     console.error('[viewingBooking] store failed', err)
     return {
       ok: false,
-      error: err instanceof Error ? err.message : 'Unable to save booking.',
+      error: 'Unable to save booking. Please try again.',
     }
   }
 
@@ -75,11 +76,8 @@ export async function submitViewingBooking(
     })),
   )
 
-  const emailResult = await sendBookingEmail(ctx.env, req, properties).catch(
-    (err) => ({
-      sent: false as const,
-      error: err instanceof Error ? err.message : 'Email failed',
-    }),
+  const emailResult = await sendWithRetry(() =>
+    sendBookingEmail(ctx.env, req, properties),
   )
 
   if (emailResult.error) console.warn('[viewingBooking] email:', emailResult.error)

@@ -12,6 +12,10 @@
 ## Done in code
 - Contact + service enquiry APIs (same pattern as viewings)
 - Rate limit + origin check + honeypot on lead POSTs
+- Durable Postgres rate limit (`009` / `consume_rate_limit`) + optional Turnstile
+- Fail-closed middleware when Supabase env missing
+- Server-side list-with-us photo MIME/size caps
+- HSTS header; lead APIs no longer return raw DB error strings
 - Fail-closed lead submits (no public Storage PII fallback)
 - CMS `is_featured` load/save + “Featured on home” toggle (omit-safe on update)
 - Admin Requests inbox: viewings, list-with-us, contact, services (+ detail pages)
@@ -28,6 +32,8 @@
 ## Apply once on live mdbx (SQL Editor)
 
 **Done (2026-09-22):** `008` DROP POLICY ran on mdbx — Success. No rows returned.
+
+**Done (2026-09-22):** `009_security_harden.sql` applied on mdbx — `consume_rate_limit` RPC verified; Auth **Allow new users to sign up** set **OFF**.
 
 Lead tables from `007` verified present (read-only counts).
 
@@ -63,5 +69,6 @@ Commits whose author is not a Vercel collaborator are **BLOCKED**. Always:
 - `pnpm seed:content` / `pnpm seed:site` for CMS defaults
 
 ## Deferred (optional)
+- Create Cloudflare Turnstile widget + set `TURNSTILE_SECRET` / `NEXT_PUBLIC_TURNSTILE_SITE_KEY` (code ready)
 - `form_submission_errors` durable table (dashboard gap card)
 - Cloudflare Workers secrets for optional `cf:deploy`

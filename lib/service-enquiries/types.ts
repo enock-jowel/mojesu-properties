@@ -15,6 +15,7 @@ export type ServiceEnquiryRequest = {
   phone: string
   sourcePath?: string
   turnstileToken?: string
+  hp_field?: string
 }
 
 export type ServiceEnquirySubmitResult = {

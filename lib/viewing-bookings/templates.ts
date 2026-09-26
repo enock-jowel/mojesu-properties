@@ -3,6 +3,18 @@ import {
   type ViewingBookingPropertyRef,
   type ViewingBookingRequest,
 } from './types'
+import {
+  brandedEmail,
+  button,
+  detailTable,
+  escapeHtml,
+  noteBox,
+  plainText,
+  propertyCard,
+  sectionTitle,
+  waLink,
+  type DetailRow,
+} from '@/lib/email/brand'
 
 export function formatPreferredDate(isoDate: string): string {
   const d = new Date(`${isoDate}T12:00:00`)
@@ -29,44 +41,72 @@ export function buildEmailSubject(
   }, ${dateLabel})`
 }
 
-/** HTML email body for the business manager. */
+function bookingRows(req: ViewingBookingRequest): DetailRow[] {
+  const email = req.contactEmail?.trim()
+  return [
+    { label: 'Client', value: req.contactName },
+    { label: 'Phone', value: req.contactPhone, href: `tel:${req.contactPhone.replace(/\s/g, '')}` },
+    ...(email ? [{ label: 'Email', value: email, href: `mailto:${email}` }] : []),
+    { label: 'Preferred date', value: formatPreferredDate(req.preferredDate) },
+    ...(req.preferredTime ? [{ label: 'Preferred time', value: req.preferredTime }] : []),
+  ]
+}
+
+/** Branded HTML email body for the business manager. */
 export function buildEmailHtml(
   req: ViewingBookingRequest,
   properties: ViewingBookingPropertyRef[],
   feeUgx: number = VIEWING_FEE_UGX,
+  siteUrl?: string,
 ): string {
   const dateLabel = formatPreferredDate(req.preferredDate)
-  const timeLine = req.preferredTime
-    ? `<p style="margin:0 0 8px"><strong>Preferred time:</strong> ${escapeHtml(req.preferredTime)}</p>`
-    : ''
+  const when = `${dateLabel}${req.preferredTime ? ` · ${req.preferredTime}` : ''}`
+  const wa = waLink(
+    req.contactPhone,
+    `Hi ${req.contactName}, this is Mojesu Properties about your viewing request for ${when}.`,
+  )
+  const email = req.contactEmail?.trim()
 
-  const listItems = properties
-    .map(
+  const body = [
+    detailTable(bookingRows(req)),
+    `<p style="margin:20px 0 0">${[
+      wa ? button('Reply on WhatsApp', wa, 'whatsapp') : '',
+      button('Call client', `tel:${req.contactPhone.replace(/\s/g, '')}`, 'outline'),
+      email ? button('Email client', `mailto:${email}`, 'outline') : '',
+    ].join('')}</p>`,
+    sectionTitle(
+      `${properties.length === 1 ? 'Property' : `Properties (${properties.length})`} to view`,
+    ),
+    properties.map((p) => propertyCard(p)).join(''),
+    noteBox(
+      `<strong>Viewing pass:</strong> ${escapeHtml(formatFeeUgx(feeUgx))} via MoMo or cash — pending confirmation.`,
+    ),
+  ].join('')
+
+  return brandedEmail({
+    siteUrl,
+    preheader: `${req.contactName} wants to view ${properties.length === 1 ? properties[0].title : `${properties.length} properties`} on ${when}`,
+    eyebrow: 'Viewing request',
+    title: `${req.contactName} wants to book a viewing`,
+    intro: `Requested for ${when}. The client may follow up on WhatsApp to confirm.`,
+    body,
+  })
+}
+
+export function buildEmailText(
+  req: ViewingBookingRequest,
+  properties: ViewingBookingPropertyRef[],
+  feeUgx: number = VIEWING_FEE_UGX,
+): string {
+  return plainText('New viewing request', bookingRows(req), [
+    `Properties (${properties.length}):`,
+    ...properties.map(
       (p, i) =>
-        `<li style="margin:0 0 8px">${i + 1}. <a href="${escapeAttr(p.url)}">${escapeHtml(p.title)}</a></li>`,
-    )
-    .join('')
-
-  return `<!DOCTYPE html>
-<html>
-<body style="font-family:system-ui,-apple-system,sans-serif;color:#2a2e32;line-height:1.5">
-  <h2 style="margin:0 0 16px">New Viewing Booking Request</h2>
-  <p style="margin:0 0 8px"><strong>Client:</strong> ${escapeHtml(req.contactName)}</p>
-  <p style="margin:0 0 8px"><strong>Phone:</strong> ${escapeHtml(req.contactPhone)}</p>
-  ${
-    req.contactEmail?.trim()
-      ? `<p style="margin:0 0 8px"><strong>Email:</strong> ${escapeHtml(req.contactEmail)}</p>`
-      : ''
-  }
-  <p style="margin:0 0 8px"><strong>Preferred date:</strong> ${escapeHtml(dateLabel)}</p>
-  ${timeLine}
-  <p style="margin:16px 0 8px"><strong>Properties (${properties.length}):</strong></p>
-  <ol style="margin:0 0 16px;padding-left:20px">${listItems}</ol>
-  <p style="margin:0;padding:12px 14px;background:#f1f7fb;border-radius:8px">
-    <strong>Payment reminder:</strong> ${formatFeeUgx(feeUgx)} via MoMo or cash — pending confirmation.
-  </p>
-</body>
-</html>`
+        `${i + 1}. ${p.title}${p.priceLabel ? ` — ${p.priceLabel}` : ''}\n   ${p.url}`,
+    ),
+    '',
+    `Viewing pass: ${formatFeeUgx(feeUgx)} (MoMo or cash) — pending confirmation.`,
+  ])
 }
 
 /** Plain-text WhatsApp body for wa.me pre-fill (no HTML). */
@@ -106,15 +146,3 @@ export function buildWhatsAppUrl(notifyNumber: string, message: string): string 
 
 /** @deprecated Use buildWhatsAppUrl */
 export const buildWhatsAppFallbackUrl = buildWhatsAppUrl
-
-function escapeHtml(s: string): string {
-  return s
-    .replace(/&/g, '&amp;')
-    .replace(/</g, '&lt;')
-    .replace(/>/g, '&gt;')
-    .replace(/"/g, '&quot;')
-}
-
-function escapeAttr(s: string): string {
-  return escapeHtml(s).replace(/'/g, '&#39;')
-}

@@ -13,6 +13,7 @@ export type ContactEnquiryRequest = {
   phone: string
   sourcePath?: string
   turnstileToken?: string
+  hp_field?: string
 }
 
 export type ContactEnquirySubmitResult = {

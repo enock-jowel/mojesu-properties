@@ -11,7 +11,7 @@ details:not([open]) > :not(summary) {
   --primary-dark: #3492b8;
   --accent-deep: #144e6e;
   --secondary: #494f3b;
-  --neutral-muted: #475053;
+  --neutral-muted: #3d4447;
   --neutral-light: #cac7c5;
   --ink: #2a2e32;
   --footer: #485354;

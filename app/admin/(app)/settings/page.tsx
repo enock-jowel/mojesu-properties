@@ -27,7 +27,7 @@ export default async function AdminSettingsRoute() {
     .maybeSingle()
 
   const role = (profile?.role as StaffRole) || 'staff'
-  const isAdmin = role === 'admin'
+  const isAdmin = role === 'admin' || role === 'superadmin'
 
   const [teamMembers, notificationSettings] = isAdmin
     ? await Promise.all([listTeamMembers(), getNotificationSettings()])

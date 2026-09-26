@@ -1,4 +1,5 @@
 import type { NotifyEnv } from '@/lib/viewing-bookings'
+import { sendWithRetry } from '@/lib/api/email-retry'
 import type { SupabaseClient } from '@supabase/supabase-js'
 import { sendServiceEnquiryEmail } from './email'
 import {
@@ -51,15 +52,12 @@ export async function submitServiceEnquiry(
     console.error('[serviceEnquiry] store failed', err)
     return {
       ok: false,
-      error: err instanceof Error ? err.message : 'Unable to save enquiry.',
+      error: 'Unable to save enquiry. Please try again.',
     }
   }
 
-  const emailResult = await sendServiceEnquiryEmail(ctx.env, req).catch(
-    (err) => ({
-      sent: false as const,
-      error: err instanceof Error ? err.message : 'Email failed',
-    }),
+  const emailResult = await sendWithRetry(() =>
+    sendServiceEnquiryEmail(ctx.env, req),
   )
 
   if (emailResult.error)

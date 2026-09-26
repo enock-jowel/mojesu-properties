@@ -396,9 +396,11 @@ export async function buildDashboardSnapshot(range?: {
   )
 
   const staffProfiles = (profiles.data || []).filter((p) =>
-    ['admin', 'staff'].includes(p.role as string),
+    ['superadmin', 'admin', 'staff'].includes(p.role as string),
   )
-  const adminCount = staffProfiles.filter((p) => p.role === 'admin').length
+  const adminCount = staffProfiles.filter((p) =>
+    ['superadmin', 'admin'].includes(p.role as string),
+  ).length
   const staffCount = staffProfiles.filter((p) => p.role === 'staff').length
 
   if (authUsersResult.error) {
@@ -418,7 +420,7 @@ export async function buildDashboardSnapshot(range?: {
       id: p.id as string,
       fullName: (p.full_name as string | null) ?? null,
       email: emailById.get(p.id as string) || '',
-      role: p.role as 'admin' | 'staff',
+      role: p.role as 'superadmin' | 'admin' | 'staff',
       lastSignInAt: lastSignInById.get(p.id as string) || null,
     }))
     .sort((a, b) => {

@@ -10,7 +10,7 @@
 | **Repo** | https://github.com/enock-jowel/mojesu-properties |
 | **Primary host** | Vercel project **`mojesu-preview`** (aliased to the custom domain) |
 | **Primary data** | Supabase project **`mdbxvcjyawgtzpingquq`** (Forever Free) |
-| **Last ops ship** | Fail-closed leads, Requests inbox, `/areas/`, RLS `008`, featured CMS (see `docs/ops-debt-closure.md`) |
+| **Last ops ship** | Security harden (signup off, middleware fail-closed, durable rate limit `009`, Turnstile-ready, HSTS) — see `docs/ops-debt-closure.md` |
 
 ### Security rule (non-negotiable)
 
@@ -60,7 +60,7 @@ Public Next.js App Router site for **rent / buy / land** listings, viewing booki
 | Icons | Lucide + Flaticon uicons | npm |
 | Optional | Bitly URL shortener | `BITLY_ACCESS_TOKEN` — often unset |
 | Optional | Google Places API (New) | Live home reviews — often unset |
-| Optional | Cloudflare Turnstile | Types exist; not wired as required CAPTCHA |
+| Optional | Cloudflare Turnstile | Wired when `NEXT_PUBLIC_TURNSTILE_SITE_KEY` + `TURNSTILE_SECRET` set; otherwise honeypot + durable rate limit |
 | CI / perf | Lighthouse CI config | `.lighthouserc.cjs`, `.github/workflows/lighthouse.yml` |
 
 Node targeting: Vercel Node 24.x (as of last deploy).
@@ -83,7 +83,7 @@ app/                  Next.js routes (public + admin + api)
 components/           UI (public + admin)
 lib/                  Domain logic (properties, leads, CMS, supabase)
 scripts/              Seed, deploy, migrations helpers
-supabase/migrations/  SQL 001–008 (apply in order)
+supabase/migrations/  SQL 001–009 (apply in order)
 docs/                 This handoff + ops/SEO/copy docs
 .cursor/rules/        Agent/engineering constraints
 ```
@@ -137,6 +137,7 @@ Apply in order on any new Supabase project:
 | `006_listing_featured.sql` | `is_featured` |
 | `007_lead_enquiries.sql` | `contact_enquiries`, `service_enquiries` |
 | `008_lead_insert_service_role_only.sql` | Drop anon INSERT on lead tables |
+| `009_security_harden.sql` | `handle_new_user` always `staff`; durable `api_rate_limits` + `consume_rate_limit` |
 
 **Lead inserts:** Next.js API routes use **`SUPABASE_SERVICE_ROLE_KEY`** (bypasses RLS). Anon clients must not INSERT leads after `008`.
 
@@ -154,7 +155,8 @@ Passwords / API keys are **not** written here. Column **Secrets live in** points
 
 | Service | Purpose | Login / identity | Dashboard | Secrets live in | Notes |
 |---------|---------|------------------|-----------|-----------------|-------|
-| **Domain** `mojesuproperties.com` | Public site + email | *(registrar account — confirm owner)* | *(TBD registrar)* | Owner password manager | DNS must point to Vercel; MX to Zoho |
+| **Domain** `mojesuproperties.com` | Public site + email | **Name.com** account (confirm login email) | https://www.name.com | Owner password manager | NS → Vercel (`ns1`/`ns2.vercel-dns.com`); MX → Zoho; reg 2026-09-21 → exp 2027-09-21 |
+| **Google Search Console** | Search performance + indexing | `enockjowel1231@gmail.com` (Domain property `sc-domain:mojesuproperties.com`) | https://search.google.com/search-console | — | Verified via DNS TXT `google-site-verification=…` on Vercel (don't delete). Sitemap `/sitemap.xml` submitted 2026-09-26. Question-queries filter: Performance → Query → Custom (regex) `(?i)^(who\|what\|when\|where\|why\|how\|which\|whose\|is\|are\|am\|can\|could\|should\|would\|will\|do\|does\|did\|was\|were\|has\|have)\b\|\?$` |
 | **Zoho Mail** | Mailbox for `hello@…` | Admin contact: `jowelnionzima@gmail.com`; mailbox: `hello@mojesuproperties.com` | https://mail.zoho.com · admin https://mailadmin.zoho.com | `.env.zoho.local` | Plan: forever-free; domain `mojesuproperties.com` |
 | **WhatsApp** | Booking confirmation CTA (`wa.me`) | Business number digits `256780827159` | WhatsApp app / business phone | Display also in CMS company + `NEXT_PUBLIC_WHATSAPP_NUMBER` | **Not** a Cloud API account |
 
@@ -188,7 +190,7 @@ Passwords / API keys are **not** written here. Column **Secrets live in** points
 | **Bitly** | Shorten listing URLs in WhatsApp text | Optional; unset OK | `BITLY_ACCESS_TOKEN` |
 | **Google Cloud Places API (New)** | Live Google reviews on home | Optional | `GOOGLE_PLACES_API_KEY`, `GOOGLE_PLACE_ID` |
 | **Google Business Profile** | Local SEO / NAP | **Not created yet** | See `docs/seo-geo-phase5-6.md` |
-| **Turnstile** | Bot protection | Types only; honeypot + rate limit used instead | — |
+| **Turnstile** | Bot protection | Optional env keys; siteverify in lead guard; widget on review steps | `.env` / Vercel |
 
 ### 6.6 Social (public CMS defaults)
 
@@ -223,11 +225,12 @@ Template for a private vault copy: [`credentials.private.example.md`](./credenti
 
 | Email (typical) | Role intent | Password location |
 |-----------------|-------------|-------------------|
-| `enockjowel1231@gmail.com` | Owner / Vercel / often Supabase admin | `.env.admin.local` |
+| `enockjowel1231@gmail.com` | **superadmin** (CMS owner) / Vercel / Supabase | `.env.admin.local` |
+| `jowelnionzima@gmail.com` | **admin** (Zoho admin contact) | `.env.zoho-cms.local` |
 | `hello@mojesu.com` | Staff bootstrap (local script default historically) | `.env.staff.local` |
 | `admin@mojesu.com` | Preview staff | `.env.preview-staff.local` |
 
-Production Auth users must exist in **mdbx** Auth with a matching `profiles.role` of `staff` or `admin`. Gate: `app/admin/(app)/layout.tsx` + `lib/admin/auth.ts`.
+Production Auth users must exist in **mdbx** Auth with a matching `profiles.role` of `superadmin`, `admin`, or `staff` (migration `010_superadmin_role.sql`). Superadmin can't be demoted or removed from the Team UI. Re-provision with `scripts/ensure-cms-admins.ts`. Gate: `app/admin/(app)/layout.tsx` + `lib/admin/auth.ts`.
 
 **Vercel deploy author rule:** git commits that trigger Vercel must use:
 
@@ -273,8 +276,9 @@ Vercel: set on **mojesu-preview** for Production + Preview + Development (alread
 4. `pnpm dev` → http://localhost:3000
 5. Admin: http://localhost:3000/admin/login/ with a staff user that exists on the same Supabase project.
 6. Read `.cursor/rules/foundation.mdc` and this file.
-7. Before changing leads/RLS: confirm `007`/`008` applied on the target DB.
-8. Deploy: `pnpm vercel:preview` (uses `.env.preview.local`, deploys production, aliases domain).
+7. Before changing leads/RLS: confirm `007`/`008`/`009` applied on the target DB.
+8. Auth → Providers: **Allow new users to sign up** must stay **OFF** (invite-only staff).
+9. Deploy: `pnpm vercel:preview` (uses `.env.preview.local`, deploys production, aliases domain).
 
 ### Common scripts
 
@@ -294,7 +298,7 @@ Vercel: set on **mojesu-preview** for Production + Preview + Development (alread
 ```
 Browser form
   → POST /api/{viewing-bookings|property-submissions|contact-enquiries|service-enquiries}
-  → rate limit + origin + honeypot
+  → durable rate limit + origin + honeypot + optional Turnstile
   → service-role Supabase insert (fail-closed on error)
   → Resend email (optional; failure does not undo DB write)
   → return ok + optional wa.me URL
@@ -322,10 +326,10 @@ Admin: `/admin/requests/` tabs for all four lead types.
 
 ## 12. Known gaps / owner follow-ups
 
-- Confirm **domain registrar** account and DNS panel access; document in `credentials.private.md`.
+- Confirm **Name.com** login email for `mojesuproperties.com` and store password in `credentials.private.md` / 1Password.
 - **Google Business Profile** not created — NAP must match CMS company content.
 - Demo **seed listings** may still be live — archive/replace before marketing “live inventory”.
-- Optional: Bitly, Google Places, Turnstile, `form_submission_errors` table.
+- Optional: Bitly, Google Places, create Turnstile widget + set `TURNSTILE_*` env, `form_submission_errors` table.
 - Optional Cloudflare deploy needs Wrangler auth + secrets (URL only in `wrangler.jsonc`).
 
 ---

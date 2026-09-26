@@ -28,7 +28,7 @@ export function SettingsPage({
   envFallbackEmail: string
   envFallbackWhatsapp: string
 }) {
-  const isAdmin = role === 'admin'
+  const isAdmin = role === 'admin' || role === 'superadmin'
   const tabs = useMemo(() => {
     const list: { id: TabId; label: string }[] = [
       { id: 'account', label: 'Account' },

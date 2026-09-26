@@ -18,7 +18,7 @@ function FooterLinkColumn({
           <li key={`${l.label}-${l.href}`}>
             <a
               href={l.href}
-              className="text-[14px] text-white/85 transition-colors hover:text-white"
+              className="text-[14px] text-white/95 transition-colors hover:text-white"
             >
               {l.label}
             </a>
@@ -48,7 +48,7 @@ export async function SiteFooter() {
                     wordmarkClassName="text-xl font-extrabold tracking-tight text-white sm:text-2xl"
                   />
                 </Link>
-                <p className="mt-4 max-w-sm text-[14px] leading-relaxed text-white/80">
+                <p className="mt-4 max-w-sm text-[14px] leading-relaxed text-white/95">
                   {company.footerBlurb}
                 </p>
               </div>
@@ -112,10 +112,10 @@ export async function SiteFooter() {
           </div>
 
           <div className="flex flex-col gap-3 border-t border-white/15 pt-6 sm:flex-row sm:items-center sm:justify-between">
-            <p className="text-[13px] text-white/80">
+            <p className="text-[13px] text-white/95">
               © {new Date().getFullYear()} Mojesu. All rights reserved.
             </p>
-            <p className="text-[13px] text-white/80">{nav.legalName}</p>
+            <p className="text-[13px] text-white/95">{nav.legalName}</p>
           </div>
         </div>
       </div>

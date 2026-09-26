@@ -50,7 +50,11 @@ export function BlogCard({ post }: { post: BlogPost }) {
         <p className="min-w-0 truncate text-xs font-semibold text-neutral-muted">
           {post.readTimeMinutes} min read · {formatDate(post.publishedAt)}
         </p>
-        <ArrowPillLink href={href} size="sm">
+        <ArrowPillLink
+          href={href}
+          size="sm"
+          aria-label={`Read more: ${post.title}`}
+        >
           Read more
         </ArrowPillLink>
       </div>

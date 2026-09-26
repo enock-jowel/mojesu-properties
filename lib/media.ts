@@ -1,5 +1,5 @@
 /** Resize common remote image CDNs for the displayed width. */
-export function sizedImageUrl(url: string, width: number, quality = 65): string {
+export function sizedImageUrl(url: string, width: number, quality = 55): string {
   if (!url || url.startsWith('/') || url.startsWith('data:')) return url
   try {
     const u = new URL(url)

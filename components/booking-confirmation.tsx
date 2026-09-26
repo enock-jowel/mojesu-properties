@@ -89,7 +89,8 @@ export function BookingConfirmation({
 
           {emailSent ? (
             <p className="mt-3 text-sm text-neutral-muted">
-              Manager notified by email.
+              Your request has been emailed to our team. Next, confirm it on
+              WhatsApp.
             </p>
           ) : null}
 

@@ -34,13 +34,14 @@ function ServiceCard({ service }: { service: ServiceDetail }) {
           {service.name}
         </h3>
         <div className="mt-1.5 flex items-end gap-2.5">
-          <p className="min-w-0 flex-1 line-clamp-2 text-sm leading-snug text-white/85">
+          <p className="min-w-0 flex-1 line-clamp-2 text-sm leading-snug text-white/95">
             {service.description}
           </p>
           <ArrowPillLink
             href={`/services/${service.slug}/`}
             variant="glass"
             size="sm"
+            aria-label={`Learn more about ${service.name}`}
           >
             Learn more
           </ArrowPillLink>

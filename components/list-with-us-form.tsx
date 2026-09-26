@@ -19,6 +19,10 @@ import {
 import { AreaAutocomplete } from '@/components/area-autocomplete'
 import { ArrowPillButton, ArrowPillLink } from '@/components/arrow-pill-button'
 import { SiteLogo } from '@/components/site-logo'
+import {
+  TurnstileField,
+  isTurnstileEnabled,
+} from '@/components/turnstile-field'
 import { showToast } from '@/lib/toast'
 import { LIST_WITH_US } from '@/lib/list-with-us'
 import { submitPropertySubmissionClient } from '@/lib/property-submissions/client-submit'
@@ -189,7 +193,8 @@ function SubmissionConfirmation({
 
           {emailSent ? (
             <p className="mt-3 text-sm text-neutral-muted">
-              Manager notified by email.
+              Your submission has been emailed to our team. Next, continue on
+              WhatsApp.
             </p>
           ) : null}
 
@@ -261,6 +266,8 @@ export function ListWithUsForm({
   const [photos, setPhotos] = useState<PhotoDraft[]>([])
   const [error, setError] = useState<string | null>(null)
   const [submitting, setSubmitting] = useState(false)
+  const [turnstileToken, setTurnstileToken] = useState<string | null>(null)
+  const [hpField, setHpField] = useState('')
   const [confirmation, setConfirmation] = useState<{
     contactName: string
     whatsappUrl: string | null
@@ -382,6 +389,10 @@ export function ListWithUsForm({
   async function confirmSubmit() {
     if (!validateCurrent()) return
     if (!form.listingMode || !form.category) return
+    if (isTurnstileEnabled() && !turnstileToken) {
+      setError('Please complete the bot check.')
+      return
+    }
 
     const priceNum = form.priceNotSure
       ? null
@@ -414,6 +425,8 @@ export function ListWithUsForm({
       contactName: form.contactName.trim(),
       contactPhone: form.contactPhone.trim(),
       bestTimeToReach: form.bestTimeToReach,
+      turnstileToken: turnstileToken ?? undefined,
+      hp_field: hpField,
     }
 
     setSubmitting(true)
@@ -434,6 +447,8 @@ export function ListWithUsForm({
       setStep('idle')
       setForm(EMPTY)
       setPhotos([])
+      setTurnstileToken(null)
+      setHpField('')
     } catch {
       showToast(
         'Something went wrong. Please try again or WhatsApp us directly.',
@@ -1066,6 +1081,26 @@ export function ListWithUsForm({
           >
             {error}
           </p>
+        ) : null}
+
+        {step === 'review' ? (
+          <div className={`relative ${compact ? 'mt-3' : 'mt-3'}`}>
+            <input
+              type="text"
+              name="hp_field"
+              value={hpField}
+              onChange={(e) => setHpField(e.target.value)}
+              className="absolute -left-[9999px] h-0 w-0 opacity-0"
+              tabIndex={-1}
+              autoComplete="off"
+              aria-hidden="true"
+            />
+            <TurnstileField
+              action="list_with_us"
+              onToken={setTurnstileToken}
+              className="flex justify-center"
+            />
+          </div>
         ) : null}
 
         <div className={compact ? 'mt-4 flex justify-center' : undefined}>

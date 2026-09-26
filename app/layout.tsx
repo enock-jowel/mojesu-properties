@@ -1,14 +1,13 @@
 import type { Metadata } from 'next'
+import { headers } from 'next/headers'
 import { LockHorizontalPagePan } from '@/components/lock-horizontal-page-pan'
 import { SiteCatalogProvider } from '@/components/site-catalog-provider'
 import { OrganizationJsonLd } from '@/components/seo/organization-json-ld'
 import { getCompanyContent, getSiteCatalog } from '@/lib/site-content/queries'
 import { getReviewsPayload } from '@/lib/reviews'
 import './globals.css'
-/* Self-hosted Flaticon UIcons (CSS + webfonts) — required for all .fi icons */
-import '@flaticon/flaticon-uicons/css/brands/all.css'
-import '@flaticon/flaticon-uicons/css/solid/rounded.css'
-import '@flaticon/flaticon-uicons/css/regular/rounded.css'
+/* Subset of Flaticon UIcons (~6KB CSS vs ~400KB full packs) — regenerate via pnpm uicons:subset */
+import '../styles/uicons-subset.css'
 
 const siteUrl =
   process.env.NEXT_PUBLIC_SITE_URL?.replace(/\/$/, '') || 'https://mojesuproperties.com'
@@ -51,6 +50,9 @@ export default async function RootLayout({
 }: Readonly<{
   children: React.ReactNode
 }>) {
+  // Opt into request-time render so middleware nonces can stamp Next scripts (CSP).
+  await headers()
+
   const [catalog, company, reviewsPayload] = await Promise.all([
     getSiteCatalog(),
     getCompanyContent(),

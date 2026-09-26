@@ -1,34 +1,55 @@
 import type { ContactEnquiryRequest } from './types'
-
-function escapeHtml(s: string): string {
-  return s
-    .replace(/&/g, '&amp;')
-    .replace(/</g, '&lt;')
-    .replace(/>/g, '&gt;')
-    .replace(/"/g, '&quot;')
-}
+import {
+  brandedEmail,
+  button,
+  detailTable,
+  messageBlock,
+  plainText,
+  sectionTitle,
+  siteBase,
+  waLink,
+  type DetailRow,
+} from '@/lib/email/brand'
 
 export function buildEmailSubject(req: ContactEnquiryRequest): string {
   return `New contact enquiry — ${req.name} (${req.purpose})`
 }
 
-export function buildEmailHtml(req: ContactEnquiryRequest): string {
-  return `<!DOCTYPE html>
-<html>
-<body style="font-family:system-ui,-apple-system,sans-serif;color:#2a2e32;line-height:1.5">
-  <h2 style="margin:0 0 16px">New contact enquiry</h2>
-  <p style="margin:0 0 8px"><strong>Name:</strong> ${escapeHtml(req.name)}</p>
-  <p style="margin:0 0 8px"><strong>Email:</strong> ${escapeHtml(req.email)}</p>
-  <p style="margin:0 0 8px"><strong>Phone:</strong> ${escapeHtml(req.phone)}</p>
-  <p style="margin:0 0 8px"><strong>Purpose:</strong> ${escapeHtml(req.purpose)}</p>
-  <p style="margin:0 0 8px"><strong>Area:</strong> ${escapeHtml(req.location)}</p>
-  ${
-    req.sourcePath
-      ? `<p style="margin:0 0 8px"><strong>Page:</strong> ${escapeHtml(req.sourcePath)}</p>`
-      : ''
-  }
-  <hr style="border:none;border-top:1px solid #e5e7eb;margin:16px 0" />
-  <p style="margin:0;white-space:pre-wrap">${escapeHtml(req.message)}</p>
-</body>
-</html>`
+function rows(req: ContactEnquiryRequest, siteUrl?: string): DetailRow[] {
+  return [
+    { label: 'Name', value: req.name },
+    { label: 'Email', value: req.email, href: `mailto:${req.email}` },
+    { label: 'Phone', value: req.phone, href: `tel:${req.phone.replace(/\s/g, '')}` },
+    { label: 'Looking to', value: req.purpose },
+    { label: 'Area', value: req.location },
+    ...(req.sourcePath
+      ? [{ label: 'Sent from', value: req.sourcePath, href: `${siteBase(siteUrl)}${req.sourcePath}` }]
+      : []),
+  ]
+}
+
+export function buildEmailHtml(req: ContactEnquiryRequest, siteUrl?: string): string {
+  const wa = waLink(req.phone, `Hi ${req.name}, this is Mojesu Properties replying to your enquiry.`)
+  const body = [
+    detailTable(rows(req, siteUrl)),
+    `<p style="margin:20px 0 0">${[
+      button('Reply by email', `mailto:${req.email}`),
+      wa ? button('WhatsApp', wa, 'whatsapp') : '',
+    ].join('')}</p>`,
+    sectionTitle('Message'),
+    messageBlock(req.message),
+  ].join('')
+
+  return brandedEmail({
+    siteUrl,
+    preheader: `${req.name}: ${req.message.slice(0, 110)}`,
+    eyebrow: 'Contact enquiry',
+    title: `${req.name} sent an enquiry`,
+    intro: `Looking to ${req.purpose.toLowerCase()} in ${req.location}. Hit reply to answer them directly.`,
+    body,
+  })
+}
+
+export function buildEmailText(req: ContactEnquiryRequest, siteUrl?: string): string {
+  return plainText('New contact enquiry', rows(req, siteUrl), ['Message:', req.message])
 }

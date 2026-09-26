@@ -105,6 +105,7 @@ export function CarouselSeeMoreCard({
     <div className={className}>
       <Link
         href={href}
+        aria-label={`${label}. ${subtitle}`}
         className="group flex h-full w-full flex-col text-left"
       >
         <div className="relative flex aspect-[1/0.92] items-end justify-center overflow-hidden rounded-2xl bg-gradient-to-b from-surface-alt via-surface-alt to-pill-soft/50">

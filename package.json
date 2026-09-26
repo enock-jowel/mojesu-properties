@@ -4,7 +4,8 @@
   "private": true,
   "scripts": {
     "dev": "next dev",
-    "build": "next build",
+    "build": "pnpm uicons:subset && next build",
+    "uicons:subset": "node ./node_modules/tsx/dist/cli.mjs scripts/build-uicons-subset.ts",
     "start": "next start",
     "lint": "eslint .",
     "seed:listings": "node ./node_modules/tsx/dist/cli.mjs scripts/seed-listings.ts",

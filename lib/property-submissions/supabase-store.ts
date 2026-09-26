@@ -2,14 +2,29 @@ import type { SupabaseClient } from '@supabase/supabase-js'
 import type { SubmissionsStore } from './store'
 import type { PropertySubmission } from './types'
 
+/** Server-enforced caps (client also caps at ~1.2MB / 8 files). */
+export const SUBMISSION_PHOTO_MAX_COUNT = 8
+export const SUBMISSION_PHOTO_MAX_BYTES = 1_200_000
+const ALLOWED_MIME = new Set([
+  'image/jpeg',
+  'image/jpg',
+  'image/png',
+  'image/webp',
+])
+
 function parseFloorArea(raw: string | null | undefined): number | null {
   if (!raw?.trim()) return null
   const n = Number(String(raw).replace(/[^\d.]/g, ''))
   return Number.isFinite(n) ? n : null
 }
 
+function normalizeContentType(raw: string): string {
+  return raw.split(';')[0]?.trim().toLowerCase() || ''
+}
+
 /**
  * Persist intake photos: keep http(s) URLs; upload data URLs via service role.
+ * Rejects oversized / non-image payloads server-side.
  */
 export async function persistSubmissionPhotos(
   supabase: SupabaseClient,
@@ -17,24 +32,65 @@ export async function persistSubmissionPhotos(
   photos: string[],
 ): Promise<string[]> {
   const out: string[] = []
-  for (let i = 0; i < photos.length; i++) {
-    const photo = photos[i]
+  const limited = photos.slice(0, SUBMISSION_PHOTO_MAX_COUNT)
+
+  for (let i = 0; i < limited.length; i++) {
+    const photo = limited[i]
     if (!photo) continue
+
     if (/^https?:\/\//i.test(photo)) {
-      out.push(photo)
+      try {
+        const u = new URL(photo)
+        if (u.protocol !== 'https:' && u.protocol !== 'http:') continue
+        if (photo.length > 2048) continue
+        out.push(photo)
+      } catch {
+        /* skip bad URL */
+      }
       continue
     }
+
     if (!photo.startsWith('data:')) continue
 
     const match = /^data:([^;]+);base64,(.+)$/.exec(photo)
     if (!match) continue
-    const contentType = match[1] || 'image/jpeg'
+
+    const contentType = normalizeContentType(match[1] || '')
+    if (!ALLOWED_MIME.has(contentType)) {
+      console.warn('[propertySubmission] rejected photo MIME', contentType)
+      continue
+    }
+
+    // Base64 expands ~4/3; reject before allocating huge buffers.
+    const b64 = match[2]
+    const approxBytes = Math.floor((b64.length * 3) / 4)
+    if (approxBytes > SUBMISSION_PHOTO_MAX_BYTES) {
+      console.warn('[propertySubmission] rejected oversized photo', approxBytes)
+      continue
+    }
+    if (b64.length > SUBMISSION_PHOTO_MAX_BYTES * 2) {
+      continue
+    }
+
+    let bytes: Buffer
+    try {
+      bytes = Buffer.from(b64, 'base64')
+    } catch {
+      continue
+    }
+    if (bytes.byteLength === 0 || bytes.byteLength > SUBMISSION_PHOTO_MAX_BYTES) {
+      console.warn(
+        '[propertySubmission] rejected photo byte length',
+        bytes.byteLength,
+      )
+      continue
+    }
+
     const ext = contentType.includes('png')
       ? 'png'
       : contentType.includes('webp')
         ? 'webp'
         : 'jpg'
-    const bytes = Buffer.from(match[2], 'base64')
     const path = `submissions/${submissionId}/${i}.${ext}`
     const { error } = await supabase.storage
       .from('listing-images')

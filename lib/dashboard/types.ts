@@ -32,7 +32,7 @@ export type StaffLogin = {
   id: string
   fullName: string | null
   email: string
-  role: 'admin' | 'staff'
+  role: 'superadmin' | 'admin' | 'staff'
   lastSignInAt: string | null
 }
 

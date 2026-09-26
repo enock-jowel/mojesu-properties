@@ -186,6 +186,16 @@ if (process.env.GOOGLE_PLACE_ID) {
 if (process.env.GOOGLE_BUSINESS_MAPS_URL) {
   envPairs.GOOGLE_BUSINESS_MAPS_URL = process.env.GOOGLE_BUSINESS_MAPS_URL
 }
+if (process.env.TURNSTILE_SECRET) {
+  envPairs.TURNSTILE_SECRET = process.env.TURNSTILE_SECRET
+}
+if (process.env.NEXT_PUBLIC_TURNSTILE_SITE_KEY) {
+  envPairs.NEXT_PUBLIC_TURNSTILE_SITE_KEY =
+    process.env.NEXT_PUBLIC_TURNSTILE_SITE_KEY
+}
+if (process.env.TURNSTILE_HOSTNAMES) {
+  envPairs.TURNSTILE_HOSTNAMES = process.env.TURNSTILE_HOSTNAMES
+}
 
 console.log('\nSyncing project env…')
 for (const [k, v] of Object.entries(envPairs)) setEnv(k, v)

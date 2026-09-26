@@ -5,6 +5,10 @@ import { ArrowLeft, X } from 'lucide-react'
 import type { ServiceDetail } from '@/lib/services'
 import { showToast } from '@/lib/toast'
 import { ArrowPillButton } from '@/components/arrow-pill-button'
+import {
+  TurnstileField,
+  isTurnstileEnabled,
+} from '@/components/turnstile-field'
 import { submitServiceEnquiryClient } from '@/lib/service-enquiries'
 
 type Step = 'idle' | 'brief' | 'details' | 'review'
@@ -44,6 +48,8 @@ export function ServiceEnquiryForm({
   const [error, setError] = useState<string | null>(null)
   const [submitting, setSubmitting] = useState(false)
   const [done, setDone] = useState(false)
+  const [turnstileToken, setTurnstileToken] = useState<string | null>(null)
+  const [hpField, setHpField] = useState('')
 
   const stepIndex = STEPS.indexOf(step as Exclude<Step, 'idle'>)
 
@@ -145,6 +151,10 @@ export function ServiceEnquiryForm({
 
   async function confirmEnquiry() {
     if (!validateCurrent()) return
+    if (isTurnstileEnabled() && !turnstileToken) {
+      setError('Please complete the bot check.')
+      return
+    }
     setSubmitting(true)
     try {
       const result = await submitServiceEnquiryClient({
@@ -155,6 +165,8 @@ export function ServiceEnquiryForm({
         name: contact.name,
         email: contact.email,
         phone: contact.phone,
+        turnstileToken: turnstileToken ?? undefined,
+        hp_field: hpField,
       })
       if (!result.ok) {
         setError(result.error || 'Could not send. Please try again.')
@@ -165,6 +177,8 @@ export function ServiceEnquiryForm({
       setStep('idle')
       setBrief({})
       setContact(EMPTY_CONTACT)
+      setTurnstileToken(null)
+      setHpField('')
       onSubmitted?.()
       onActiveChange?.(false)
     } finally {
@@ -482,6 +496,26 @@ export function ServiceEnquiryForm({
         >
           {error}
         </p>
+      ) : null}
+
+      {step === 'review' ? (
+        <div className={`relative ${compact ? 'mt-3' : 'mt-3'}`}>
+          <input
+            type="text"
+            name="hp_field"
+            value={hpField}
+            onChange={(e) => setHpField(e.target.value)}
+            className="absolute -left-[9999px] h-0 w-0 opacity-0"
+            tabIndex={-1}
+            autoComplete="off"
+            aria-hidden="true"
+          />
+          <TurnstileField
+            action="service"
+            onToken={setTurnstileToken}
+            className="flex justify-center"
+          />
+        </div>
       ) : null}
 
       <div className={compact ? 'mt-4 flex justify-center' : undefined}>

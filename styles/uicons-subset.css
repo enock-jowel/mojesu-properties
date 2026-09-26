@@ -1,0 +1,93 @@
+/* Auto-generated — pnpm uicons:subset */
+.fi{display:inline-flex;align-items:center;justify-content:center}
+/* sr: 50 icons */
+@font-face{font-family:uicons-solid-rounded;src:url(../node_modules/@flaticon/flaticon-uicons/css/uicons-solid-rounded-IYSBBSWN.woff2) format("woff2"),url(../node_modules/@flaticon/flaticon-uicons/css/uicons-solid-rounded-UWVI4CEC.woff) format("woff"),url(../node_modules/@flaticon/flaticon-uicons/css/uicons-solid-rounded-N5CQNTC6.eot#iefix) format("embedded-opentype");font-display:swap}
+i[class^=fi-sr-]:before,i[class*=" fi-sr-"]:before,span[class^=fi-sr-]:before,span[class*=fi-sr-]:before{font-family:uicons-solid-rounded!important;font-style:normal;font-weight:400!important;font-variant:normal;text-transform:none;line-height:1;-webkit-font-smoothing:antialiased;-moz-osx-font-smoothing:grayscale}
+.fi-sr-air-conditioner:before{content:"\f12a"}
+.fi-sr-bath:before{content:"\f21f"}
+.fi-sr-battery-bolt:before{content:"\f220"}
+.fi-sr-bed:before{content:"\f22c"}
+.fi-sr-bolt:before{content:"\f26a"}
+.fi-sr-building:before{content:"\f300"}
+.fi-sr-camera-cctv:before{content:"\f33e"}
+.fi-sr-car:before{content:"\f366"}
+.fi-sr-car-garage:before{content:"\f35d"}
+.fi-sr-chair:before{content:"\f393"}
+.fi-sr-charging-station:before{content:"\f399"}
+.fi-sr-check-circle:before{content:"\f3bc"}
+.fi-sr-clipboard-list-check:before{content:"\f432"}
+.fi-sr-couch:before{content:"\f4d8"}
+.fi-sr-desk:before{content:"\f529"}
+.fi-sr-document:before{content:"\f56e"}
+.fi-sr-dolly-flatbed:before{content:"\f574"}
+.fi-sr-elevator:before{content:"\f5bb"}
+.fi-sr-envelope:before{content:"\f5d1"}
+.fi-sr-expand:before{content:"\f5e4"}
+.fi-sr-faucet:before{content:"\f637"}
+.fi-sr-fence:before{content:"\f644"}
+.fi-sr-garage:before{content:"\f6d6"}
+.fi-sr-hand-holding-droplet:before{content:"\f74e"}
+.fi-sr-hard-hat:before{content:"\f76e"}
+.fi-sr-house-lock:before{content:"\f7d6"}
+.fi-sr-knife-kitchen:before{content:"\f849"}
+.fi-sr-marker:before{content:"\f8ef"}
+.fi-sr-meter:before{content:"\f92f"}
+.fi-sr-meter-bolt:before{content:"\f92c"}
+.fi-sr-parking:before{content:"\f9ee"}
+.fi-sr-paw:before{content:"\f9ff"}
+.fi-sr-phone-call:before{content:"\fa43"}
+.fi-sr-plug:before{content:"\fa88"}
+.fi-sr-road:before{content:"\fb3d"}
+.fi-sr-ruler-combined:before{content:"\fb53"}
+.fi-sr-ruler-triangle:before{content:"\fb55"}
+.fi-sr-shower:before{content:"\fbda"}
+.fi-sr-solar-panel:before{content:"\fc3a"}
+.fi-sr-terrace:before{content:"\fd4f"}
+.fi-sr-tree:before{content:"\fde6"}
+.fi-sr-tv-retro:before{content:"\fe38"}
+.fi-sr-user-headset:before{content:"\fe5c"}
+.fi-sr-warehouse-alt:before{content:"\feb5"}
+.fi-sr-water:before{content:"\fec1"}
+.fi-sr-wifi:before{content:"\fede"}
+.fi-sr-wrench-simple:before{content:"\fefa"}
+/* rr: 31 icons */
+@font-face{font-family:uicons-regular-rounded;src:url(../node_modules/@flaticon/flaticon-uicons/css/uicons-regular-rounded-J3WOUERV.woff2) format("woff2"),url(../node_modules/@flaticon/flaticon-uicons/css/uicons-regular-rounded-KDJ23353.woff) format("woff"),url(../node_modules/@flaticon/flaticon-uicons/css/uicons-regular-rounded-ESQGLQQ4.eot#iefix) format("embedded-opentype");font-display:swap}
+i[class^=fi-rr-]:before,i[class*=" fi-rr-"]:before,span[class^=fi-rr-]:before,span[class*=fi-rr-]:before{font-family:uicons-regular-rounded!important;font-style:normal;font-weight:400!important;font-variant:normal;text-transform:none;line-height:1;-webkit-font-smoothing:antialiased;-moz-osx-font-smoothing:grayscale}
+.fi-rr-arrow-up-right-from-square:before{content:"\f1b3"}
+.fi-rr-bank:before{content:"\f20a"}
+.fi-rr-bell:before{content:"\f239"}
+.fi-rr-bolt:before{content:"\f26c"}
+.fi-rr-briefcase:before{content:"\f2e9"}
+.fi-rr-building:before{content:"\f303"}
+.fi-rr-calculator:before{content:"\f31f"}
+.fi-rr-calendar:before{content:"\f339"}
+.fi-rr-camera:before{content:"\f348"}
+.fi-rr-chart-histogram:before{content:"\f3a2"}
+.fi-rr-chart-pie:before{content:"\f3ad"}
+.fi-rr-check-circle:before{content:"\f3c4"}
+.fi-rr-checkbox:before{content:"\f3c9"}
+.fi-rr-comment:before{content:"\f4b8"}
+.fi-rr-document:before{content:"\f57a"}
+.fi-rr-handshake:before{content:"\f779"}
+.fi-rr-headset:before{content:"\f794"}
+.fi-rr-home:before{content:"\f7b8"}
+.fi-rr-list-check:before{content:"\f8c0"}
+.fi-rr-map:before{content:"\f8fb"}
+.fi-rr-ruler-triangle:before{content:"\fb77"}
+.fi-rr-search:before{content:"\fbba"}
+.fi-rr-settings:before{content:"\fbd2"}
+.fi-rr-star:before{content:"\fce9"}
+.fi-rr-stats:before{content:"\fcee"}
+.fi-rr-tags:before{content:"\fd51"}
+.fi-rr-time-fast:before{content:"\fda4"}
+.fi-rr-tool-box:before{content:"\fdc8"}
+.fi-rr-user:before{content:"\fea0"}
+.fi-rr-users:before{content:"\fea6"}
+.fi-rr-wallet:before{content:"\fedc"}
+/* brands: 4 icons */
+@font-face{font-family:uicons-brands;src:url(../node_modules/@flaticon/flaticon-uicons/css/uicons-brands-XJPKRNBN.woff2) format("woff2"),url(../node_modules/@flaticon/flaticon-uicons/css/uicons-brands-PQBQF6T3.woff) format("woff"),url(../node_modules/@flaticon/flaticon-uicons/css/uicons-brands-ZJWE2ELA.eot#iefix) format("embedded-opentype");font-display:swap}
+i[class^=fi-brands-]:before,i[class*=" fi-brands-"]:before,span[class^=fi-brands-]:before,span[class*=fi-brands-]:before{font-family:uicons-brands!important;font-style:normal;font-weight:400!important;font-variant:normal;text-transform:none;line-height:1;-webkit-font-smoothing:antialiased;-moz-osx-font-smoothing:grayscale}
+.fi-brands-instagram:before{content:"\f16e"}
+.fi-brands-linkedin:before{content:"\f17b"}
+.fi-brands-tik-tok:before{content:"\f1b9"}
+.fi-brands-youtube:before{content:"\f1dc"}

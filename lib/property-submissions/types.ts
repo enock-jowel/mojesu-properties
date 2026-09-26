@@ -61,6 +61,8 @@ export interface PropertySubmissionRequest {
   contactName: string
   contactPhone: string
   bestTimeToReach: BestTimeToReach
+  turnstileToken?: string
+  hp_field?: string
 }
 
 export interface PropertySubmissionSubmitResult {

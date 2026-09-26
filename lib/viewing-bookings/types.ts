@@ -59,6 +59,11 @@ export interface ViewingBookingPropertyRef {
   url: string
   /** Prefer short link when a shortener is configured */
   shortUrl: string
+  /** Email card extras (absolute cover image, formatted price, area, specs) */
+  imageUrl?: string | null
+  priceLabel?: string
+  location?: string
+  specs?: string
 }
 
 export interface ViewingBookingRequest {
@@ -69,6 +74,8 @@ export interface ViewingBookingRequest {
   contactName: string
   contactPhone: string
   contactEmail: string
+  turnstileToken?: string
+  hp_field?: string
 }
 
 export interface ViewingBookingSubmitResult {

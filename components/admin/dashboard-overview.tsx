@@ -938,7 +938,7 @@ export function DashboardOverview({ data }: { data: DashboardSnapshot }) {
                 <div className="shrink-0 text-right">
                   <span
                     className={`inline-block rounded-full px-2 py-0.5 text-[10px] font-bold uppercase ${
-                      u.role === 'admin'
+                      u.role !== 'staff'
                         ? 'bg-pill-soft text-accent-deep'
                         : 'bg-surface-alt text-neutral-muted'
                     }`}

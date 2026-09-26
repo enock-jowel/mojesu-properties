@@ -1,4 +1,3 @@
-import { NextResponse } from 'next/server'
 import { createServiceClient } from '@/lib/supabase/admin'
 import {
   submitPropertySubmission,
@@ -7,65 +6,39 @@ import {
 import {
   createSupabaseSubmissionsStore,
   persistSubmissionPhotos,
+  SUBMISSION_PHOTO_MAX_COUNT,
 } from '@/lib/property-submissions/supabase-store'
 import { getNotifyConfig } from '@/lib/settings/notify-config'
-import {
-  assertAllowedOrigin,
-  checkRateLimit,
-  clientIpFromRequest,
-  isHoneypotTripped,
-} from '@/lib/api/rate-limit'
+import { guardLeadPost, leadJson, leadOptionsResponse } from '@/lib/api/lead-guard'
 
 export const runtime = 'nodejs'
 
-function json(data: unknown, status = 200) {
-  return NextResponse.json(data, { status })
-}
-
-export async function OPTIONS() {
-  return new NextResponse(null, {
-    status: 204,
-    headers: {
-      'Access-Control-Allow-Origin': '*',
-      'Access-Control-Allow-Methods': 'POST, OPTIONS',
-      'Access-Control-Allow-Headers': 'Content-Type',
-    },
-  })
+export async function OPTIONS(request: Request) {
+  return leadOptionsResponse(request)
 }
 
 export async function POST(request: Request) {
-  if (!assertAllowedOrigin(request)) {
-    return json({ ok: false, error: 'Forbidden origin' }, 403)
-  }
-
-  const ip = clientIpFromRequest(request)
-  const limited = checkRateLimit(`submission:${ip}`, {
+  const gate = await guardLeadPost(request, {
+    rateKeyPrefix: 'submission',
     limit: 6,
-    windowMs: 60_000,
+    turnstileAction: 'list_with_us',
   })
-  if (!limited.ok) {
-    return json(
-      { ok: false, error: 'Too many requests. Try again shortly.' },
-      429,
+  if (!gate.ok) return gate.response
+
+  if (gate.honeypot) {
+    return leadJson(
+      {
+        ok: true,
+        submissionId: crypto.randomUUID(),
+        emailSent: false,
+        whatsappUrl: null,
+      },
+      200,
+      request,
     )
   }
 
-  let body: PropertySubmissionRequest & Record<string, unknown>
-  try {
-    body = (await request.json()) as PropertySubmissionRequest &
-      Record<string, unknown>
-  } catch {
-    return json({ ok: false, error: 'Invalid JSON body' }, 400)
-  }
-
-  if (isHoneypotTripped(body)) {
-    return json({
-      ok: true,
-      submissionId: crypto.randomUUID(),
-      emailSent: false,
-      whatsappUrl: null,
-    })
-  }
+  const body = gate.body as PropertySubmissionRequest & Record<string, unknown>
 
   if (
     !body.listingMode ||
@@ -75,7 +48,11 @@ export async function POST(request: Request) {
     !body.contactPhone?.trim() ||
     !body.bestTimeToReach
   ) {
-    return json({ ok: false, error: 'Missing required submission fields' }, 400)
+    return leadJson(
+      { ok: false, error: 'Missing required submission fields' },
+      400,
+      request,
+    )
   }
 
   const env = await getNotifyConfig(
@@ -87,7 +64,9 @@ export async function POST(request: Request) {
     new URL(request.url).origin.replace(/\/$/, '')
 
   const submissionId = crypto.randomUUID()
-  const photos = Array.isArray(body.photos) ? body.photos.slice(0, 8) : []
+  const photos = Array.isArray(body.photos)
+    ? body.photos.slice(0, SUBMISSION_PHOTO_MAX_COUNT)
+    : []
 
   try {
     const supabase = createServiceClient()
@@ -104,15 +83,17 @@ export async function POST(request: Request) {
         env: { ...env, SITE_URL: siteUrl },
         store,
         newId: () => submissionId,
+        photoUrls,
       },
     )
 
-    return json(result, result.ok ? 200 : 500)
+    return leadJson(result, result.ok ? 200 : 500, request)
   } catch (err) {
     console.error('[property-submissions API]', err)
-    return json(
+    return leadJson(
       { ok: false, error: 'Unable to save submission. Please try again.' },
       500,
+      request,
     )
   }
 }

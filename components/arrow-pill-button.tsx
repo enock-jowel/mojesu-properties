@@ -180,10 +180,12 @@ export function ArrowPillLink({
   attention = false,
   target,
   rel,
+  'aria-label': ariaLabel,
 }: CommonProps & {
   href: string
   target?: string
   rel?: string
+  'aria-label'?: string
 }) {
   const isHash = href.startsWith('#')
   const classes = `${shellClass(variant, size, className)} ${
@@ -201,6 +203,7 @@ export function ArrowPillLink({
         href={href}
         target={target}
         rel={rel}
+        aria-label={ariaLabel}
         data-size={size}
         className={classes}
       >
@@ -210,7 +213,7 @@ export function ArrowPillLink({
   }
 
   return (
-    <Link href={href} data-size={size} className={classes}>
+    <Link href={href} aria-label={ariaLabel} data-size={size} className={classes}>
       {content}
     </Link>
   )

@@ -1,8 +1,10 @@
 /**
- * In-memory sliding-window rate limit for public lead APIs.
- * Free, no UI. Best-effort per server instance (sufficient for Vercel serverless
- * burst protection; pair with Origin checks).
+ * Rate limit + origin + honeypot for public lead APIs.
+ * Memory Map is best-effort per instance; durable path uses Postgres
+ * `consume_rate_limit` (migration 009) via service role.
  */
+
+import type { SupabaseClient } from '@supabase/supabase-js'
 
 type Bucket = { count: number; resetAt: number }
 
@@ -35,6 +37,40 @@ export function checkRateLimit(
   return { ok: true }
 }
 
+/** Durable sliding window via Postgres RPC; falls back to memory on failure. */
+export async function checkRateLimitDurable(
+  supabase: SupabaseClient,
+  key: string,
+  opts: { limit: number; windowMs: number } = { limit: 8, windowMs: 60_000 },
+): Promise<RateLimitResult> {
+  const windowSec = Math.max(1, Math.ceil(opts.windowMs / 1000))
+  try {
+    const { data, error } = await supabase.rpc('consume_rate_limit', {
+      p_key: key,
+      p_limit: opts.limit,
+      p_window_seconds: windowSec,
+    })
+    if (error) throw error
+
+    const row = Array.isArray(data) ? data[0] : data
+    if (row && typeof row === 'object' && 'allowed' in row) {
+      const allowed = Boolean((row as { allowed: boolean }).allowed)
+      if (allowed) return { ok: true }
+      const retry = Number((row as { retry_after_sec?: number }).retry_after_sec)
+      return {
+        ok: false,
+        retryAfterSec: Number.isFinite(retry) && retry > 0 ? retry : 60,
+      }
+    }
+    // RPC executed (counter may have moved); avoid a second memory increment.
+    console.warn('[rate-limit] unexpected RPC shape; allowing request')
+    return { ok: true }
+  } catch (err) {
+    console.warn('[rate-limit] durable failed; using memory', err)
+  }
+  return checkRateLimit(key, opts)
+}
+
 /** Prefer CF / Vercel client IP headers, then remote. */
 export function clientIpFromRequest(request: Request): string {
   const cf = request.headers.get('cf-connecting-ip')
@@ -54,17 +90,35 @@ const DEFAULT_HOSTS = [
   '127.0.0.1',
 ]
 
+export function isAllowedLeadHostname(host: string): boolean {
+  const h = host.toLowerCase()
+  const extras = (process.env.ALLOWED_LEAD_ORIGINS || '')
+    .split(',')
+    .map((s) => s.trim().toLowerCase())
+    .filter(Boolean)
+  const allow = new Set([...DEFAULT_HOSTS, ...extras])
+  if (allow.has(h)) return true
+  if (h.endsWith('.vercel.app') && h.includes('mojesu')) return true
+  return false
+}
+
+function isProductionLike(): boolean {
+  return (
+    process.env.VERCEL_ENV === 'production' ||
+    process.env.NODE_ENV === 'production'
+  )
+}
+
 /**
- * Reject cross-origin POSTs that don't come from our site (or missing Origin
- * when Referer also missing — browsers always send one for fetch from pages).
+ * Reject cross-origin POSTs. In production, missing Origin and Referer is denied
+ * (browsers send at least one for page fetch). Local/dev still allows bare curl.
  */
 export function assertAllowedOrigin(request: Request): boolean {
   const origin = request.headers.get('origin')
   const referer = request.headers.get('referer')
   const raw = origin || referer
   if (!raw) {
-    // Allow server-to-server / curl for ops; rate limit still applies.
-    return true
+    return !isProductionLike()
   }
 
   let host: string
@@ -74,20 +128,10 @@ export function assertAllowedOrigin(request: Request): boolean {
     return false
   }
 
-  const extras = (process.env.ALLOWED_LEAD_ORIGINS || '')
-    .split(',')
-    .map((s) => s.trim().toLowerCase())
-    .filter(Boolean)
-
-  const allow = new Set([...DEFAULT_HOSTS, ...extras])
-  if (allow.has(host)) return true
-  // Preview deploys: *.vercel.app for this project
-  if (host.endsWith('.vercel.app') && host.includes('mojesu')) return true
-  return false
+  return isAllowedLeadHostname(host)
 }
 
-/** Bot honeypot: reject if a hidden field was filled. No UI required on forms
- * that omit the field — bots that POST arbitrary shapes get blocked. */
+/** Bot honeypot: reject if a hidden field was filled. */
 export function isHoneypotTripped(body: Record<string, unknown>): boolean {
   const traps = ['website', 'company_url', 'fax', 'hp_field']
   for (const key of traps) {

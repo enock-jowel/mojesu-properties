@@ -3,6 +3,18 @@ import {
   LISTING_MODE_LABEL,
   type PropertySubmissionRequest,
 } from './types'
+import {
+  brandedEmail,
+  button,
+  detailTable,
+  escapeHtml,
+  noteBox,
+  photoGrid,
+  plainText,
+  sectionTitle,
+  waLink,
+  type DetailRow,
+} from '@/lib/email/brand'
 
 function formatPrice(req: PropertySubmissionRequest): string {
   if (req.priceNotSure || req.askingPrice == null) return 'Not sure yet'
@@ -29,32 +41,86 @@ export function buildEmailSubject(req: PropertySubmissionRequest): string {
   return `New Property Submission — ${req.contactName} (${type}, ${mode})`
 }
 
-/** HTML email body for the business manager. */
-export function buildEmailHtml(req: PropertySubmissionRequest): string {
+function ownerRows(req: PropertySubmissionRequest): DetailRow[] {
+  return [
+    { label: 'Owner', value: req.contactName },
+    { label: 'Phone', value: req.contactPhone, href: `tel:${req.contactPhone.replace(/\s/g, '')}` },
+    { label: 'Best time to reach', value: req.bestTimeToReach },
+  ]
+}
+
+function propertyRows(req: PropertySubmissionRequest): DetailRow[] {
+  return [
+    { label: 'Listing for', value: LISTING_MODE_LABEL[req.listingMode] },
+    { label: 'Property type', value: CATEGORY_LABEL[req.category] },
+    { label: 'Area', value: req.location },
+    { label: 'Rough address', value: req.roughAddress },
+    { label: 'Details', value: categoryLine(req) },
+    { label: 'Asking price', value: formatPrice(req) },
+  ]
+}
+
+/** Only hosted https photos can render in an email. */
+function hostedPhotos(req: PropertySubmissionRequest): string[] {
+  return (req.photos ?? []).filter((p) => /^https:\/\//i.test(p))
+}
+
+/** Branded HTML email body for the business manager. */
+export function buildEmailHtml(
+  req: PropertySubmissionRequest,
+  siteUrl?: string,
+): string {
   const type = CATEGORY_LABEL[req.category]
   const mode = LISTING_MODE_LABEL[req.listingMode]
-  const photoCount = req.photos?.length ?? 0
+  const photos = hostedPhotos(req)
+  const wa = waLink(
+    req.contactPhone,
+    `Hi ${req.contactName}, this is Mojesu Properties about the ${type.toLowerCase()} in ${req.location} you submitted.`,
+  )
 
-  return `<!DOCTYPE html>
-<html>
-<body style="font-family:system-ui,-apple-system,sans-serif;color:#2a2e32;line-height:1.5">
-  <h2 style="margin:0 0 16px">New Property Submission</h2>
-  <p style="margin:0 0 8px"><strong>Owner:</strong> ${escapeHtml(req.contactName)}</p>
-  <p style="margin:0 0 8px"><strong>Phone:</strong> ${escapeHtml(req.contactPhone)}</p>
-  <p style="margin:0 0 8px"><strong>Best time to reach:</strong> ${escapeHtml(req.bestTimeToReach)}</p>
-  <hr style="border:none;border-top:1px solid #e5e7eb;margin:16px 0" />
-  <p style="margin:0 0 8px"><strong>Listing for:</strong> ${escapeHtml(mode)}</p>
-  <p style="margin:0 0 8px"><strong>Property type:</strong> ${escapeHtml(type)}</p>
-  <p style="margin:0 0 8px"><strong>Area:</strong> ${escapeHtml(req.location)}</p>
-  <p style="margin:0 0 8px"><strong>Rough address:</strong> ${escapeHtml(req.roughAddress)}</p>
-  <p style="margin:0 0 8px"><strong>Details:</strong> ${escapeHtml(categoryLine(req))}</p>
-  <p style="margin:0 0 8px"><strong>Asking price:</strong> ${escapeHtml(formatPrice(req))}</p>
-  <p style="margin:0 0 8px"><strong>Photos attached:</strong> ${photoCount}</p>
-  <p style="margin:16px 0 0;padding:12px 14px;background:#f1f7fb;border-radius:8px">
-    Intake only — verify, photograph, and create the live listing manually. No public listing was auto-created.
-  </p>
-</body>
-</html>`
+  const body = [
+    photos[0]
+      ? `<a href="${escapeHtml(photos[0])}"><img src="${escapeHtml(photos[0])}" width="536" alt="Submitted property photo" style="display:block;width:100%;max-width:536px;height:auto;border:0;border-radius:16px;margin:0 0 8px" /></a>`
+      : '',
+    sectionTitle('Owner'),
+    detailTable(ownerRows(req)),
+    `<p style="margin:20px 0 0">${[
+      wa ? button('Reply on WhatsApp', wa, 'whatsapp') : '',
+      button('Call owner', `tel:${req.contactPhone.replace(/\s/g, '')}`, 'outline'),
+    ].join('')}</p>`,
+    sectionTitle('Property'),
+    detailTable(propertyRows(req)),
+    photos.length > 1
+      ? `${sectionTitle(`All photos (${photos.length})`)}${photoGrid(photos)}`
+      : photos.length === 0
+        ? noteBox('No photos were uploaded with this submission.')
+        : '',
+    noteBox(
+      'Intake only — verify, photograph and create the live listing manually. No public listing was created automatically.',
+    ),
+  ].join('')
+
+  return brandedEmail({
+    siteUrl,
+    preheader: `${req.contactName} wants to ${mode.toLowerCase()} a ${type.toLowerCase()} in ${req.location} — ${formatPrice(req)}`,
+    eyebrow: 'List with us',
+    title: `New ${type.toLowerCase()} to ${mode.toLowerCase()} in ${req.location}`,
+    intro: `${req.contactName} submitted a property through the website.`,
+    body,
+  })
+}
+
+export function buildEmailText(req: PropertySubmissionRequest): string {
+  const photos = hostedPhotos(req)
+  return plainText(
+    'New property submission',
+    [...ownerRows(req), ...propertyRows(req)],
+    [
+      photos.length ? `Photos (${photos.length}):\n${photos.join('\n')}` : 'No photos uploaded.',
+      '',
+      'Intake only — verify before listing.',
+    ],
+  )
 }
 
 /** Plain-text WhatsApp body for wa.me pre-fill (no HTML). */
@@ -88,12 +154,4 @@ export function buildWhatsAppUrl(
 ): string {
   const digits = notifyNumber.replace(/\D/g, '')
   return `https://wa.me/${digits}?text=${encodeURIComponent(message)}`
-}
-
-function escapeHtml(s: string): string {
-  return s
-    .replace(/&/g, '&amp;')
-    .replace(/</g, '&lt;')
-    .replace(/>/g, '&gt;')
-    .replace(/"/g, '&quot;')
 }

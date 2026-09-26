@@ -8,6 +8,7 @@
 
 import type { NotifyEnv } from '@/lib/viewing-bookings'
 import { sendSubmissionEmail } from './email'
+import { sendWithRetry } from '@/lib/api/email-retry'
 import {
   type SubmissionsStore,
   type D1DatabaseLike,
@@ -26,6 +27,8 @@ export interface SubmitContext {
   d1?: D1DatabaseLike
   now?: () => Date
   newId?: () => string
+  /** Hosted photo URLs (after upload) — used in the notification email */
+  photoUrls?: string[]
 }
 
 export async function submitPropertySubmission(
@@ -75,23 +78,19 @@ export async function submitPropertySubmission(
     console.error('[propertySubmission] store failed', err)
     return {
       ok: false,
-      error:
-        err instanceof Error ? err.message : 'Unable to save submission.',
+      error: 'Unable to save submission. Please try again.',
     }
   }
 
   const emailPayload: PropertySubmissionRequest = {
     ...req,
-    photos,
+    photos: ctx.photoUrls ?? photos,
     askingPrice: submission.askingPrice,
     priceNotSure,
   }
 
-  const emailResult = await sendSubmissionEmail(ctx.env, emailPayload).catch(
-    (err) => ({
-      sent: false as const,
-      error: err instanceof Error ? err.message : 'Email failed',
-    }),
+  const emailResult = await sendWithRetry(() =>
+    sendSubmissionEmail(ctx.env, emailPayload),
   )
 
   if (emailResult.error)

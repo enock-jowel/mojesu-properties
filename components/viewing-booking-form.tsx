@@ -9,6 +9,10 @@ import { BookingConfirmation } from '@/components/booking-confirmation'
 import { showToast } from '@/lib/toast'
 import { ArrowPillButton } from '@/components/arrow-pill-button'
 import {
+  TurnstileField,
+  isTurnstileEnabled,
+} from '@/components/turnstile-field'
+import {
   useFormsCopy,
   useViewingConfig,
   useViewingPassBlurb,
@@ -217,6 +221,8 @@ export function ViewingBookingForm({
   const [step, setStep] = useState<Step>(defaultOpen ? 'schedule' : 'idle')
   const [error, setError] = useState<string | null>(null)
   const [submitting, setSubmitting] = useState(false)
+  const [turnstileToken, setTurnstileToken] = useState<string | null>(null)
+  const [hpField, setHpField] = useState('')
   const [confirmation, setConfirmation] = useState<{
     clientName: string
     preferredDateLabel: string
@@ -307,6 +313,10 @@ export function ViewingBookingForm({
 
   async function confirmBooking() {
     if (!validateCurrent()) return
+    if (isTurnstileEnabled() && !turnstileToken) {
+      setError('Please complete the bot check.')
+      return
+    }
     setSubmitting(true)
     try {
       const result = await submitViewingBookingClient(
@@ -317,6 +327,8 @@ export function ViewingBookingForm({
           contactName: form.name.trim(),
           contactPhone: form.phone.trim(),
           contactEmail: form.email.trim(),
+          turnstileToken: turnstileToken ?? undefined,
+          hp_field: hpField,
         },
         [item],
         viewing.feeUgx,
@@ -339,6 +351,8 @@ export function ViewingBookingForm({
       })
       setStep('idle')
       setForm(EMPTY_FORM)
+      setTurnstileToken(null)
+      setHpField('')
     } catch {
       showToast(
         'Something went wrong. Please try again or WhatsApp us directly.',
@@ -622,6 +636,26 @@ export function ViewingBookingForm({
           >
             {error}
           </p>
+        ) : null}
+
+        {step === 'review' ? (
+          <div className={`relative ${compact ? 'mt-3' : 'mt-3'}`}>
+            <input
+              type="text"
+              name="hp_field"
+              value={hpField}
+              onChange={(e) => setHpField(e.target.value)}
+              className="absolute -left-[9999px] h-0 w-0 opacity-0"
+              tabIndex={-1}
+              autoComplete="off"
+              aria-hidden="true"
+            />
+            <TurnstileField
+              action="viewing"
+              onToken={setTurnstileToken}
+              className="flex justify-center"
+            />
+          </div>
         ) : null}
 
         <div className={compact ? 'mt-4 flex justify-center' : undefined}>

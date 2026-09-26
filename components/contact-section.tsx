@@ -6,6 +6,10 @@ import { useRouter } from 'next/navigation'
 import { ArrowLeft, ArrowUpRight, MapPin, Phone, X } from 'lucide-react'
 import { showToast } from '@/lib/toast'
 import { ArrowPillButton } from '@/components/arrow-pill-button'
+import {
+  TurnstileField,
+  isTurnstileEnabled,
+} from '@/components/turnstile-field'
 import type { CompanyContent, ContactContent } from '@/lib/site-content/types'
 import { phoneHref } from '@/lib/site-content/phone'
 import { useFormsCopy } from '@/components/site-catalog-provider'
@@ -53,6 +57,8 @@ function ContactEnquiryForm() {
   const [error, setError] = useState<string | null>(null)
   const [submitting, setSubmitting] = useState(false)
   const [done, setDone] = useState(false)
+  const [turnstileToken, setTurnstileToken] = useState<string | null>(null)
+  const [hpField, setHpField] = useState('')
 
   const stepIndex = STEPS.indexOf(step as Exclude<Step, 'idle'>)
 
@@ -119,6 +125,10 @@ function ContactEnquiryForm() {
 
   async function confirmSend() {
     if (!validateCurrent()) return
+    if (isTurnstileEnabled() && !turnstileToken) {
+      setError('Please complete the bot check.')
+      return
+    }
     setSubmitting(true)
     try {
       const result = await submitContactEnquiryClient({
@@ -128,6 +138,8 @@ function ContactEnquiryForm() {
         name: form.name,
         email: form.email,
         phone: form.phone,
+        turnstileToken: turnstileToken ?? undefined,
+        hp_field: hpField,
       })
       if (!result.ok) {
         setError(result.error || 'Could not send. Please try again.')
@@ -137,6 +149,8 @@ function ContactEnquiryForm() {
       setDone(true)
       setStep('idle')
       setForm(EMPTY)
+      setTurnstileToken(null)
+      setHpField('')
     } finally {
       setSubmitting(false)
     }
@@ -391,6 +405,26 @@ function ContactEnquiryForm() {
         <p className="mt-1.5 text-[11px] font-medium text-secondary sm:mt-2 sm:text-xs" role="alert">
           {error}
         </p>
+      ) : null}
+
+      {step === 'review' ? (
+        <div className="relative mt-2.5 sm:mt-3">
+          <input
+            type="text"
+            name="hp_field"
+            value={hpField}
+            onChange={(e) => setHpField(e.target.value)}
+            className="absolute -left-[9999px] h-0 w-0 opacity-0"
+            tabIndex={-1}
+            autoComplete="off"
+            aria-hidden="true"
+          />
+          <TurnstileField
+            action="contact"
+            onToken={setTurnstileToken}
+            className="flex justify-center"
+          />
+        </div>
       ) : null}
 
       <div className="mt-2.5 sm:mt-4">
