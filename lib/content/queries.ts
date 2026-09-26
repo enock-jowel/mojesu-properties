@@ -1,3 +1,4 @@
+import { unstable_cache } from 'next/cache'
 import { createClient as createBrowserSupabase } from '@supabase/supabase-js'
 import {
   agentRowToAgent,
@@ -25,93 +26,135 @@ function anonClient() {
   })
 }
 
-/** null = unset/unreachable; [] = empty published set */
-export async function fetchPublishedInsights(): Promise<BlogPost[] | null> {
+/** Invalidated by `revalidateTag` in lib/content/actions.ts. */
+export const CONTENT_CACHE_TAG = 'content'
+const CACHE = { revalidate: 60, tags: [CONTENT_CACHE_TAG] }
+
+/**
+ * Pages render per request (CSP nonce), so uncached Supabase reads cost a
+ * cross-region round trip on every view. Errors throw inside the cache so a
+ * failed read is never stored; callers get `null` as before.
+ */
+async function uncachedOnError<T>(
+  label: string,
+  load: () => Promise<T>,
+): Promise<T | null> {
+  try {
+    return await load()
+  } catch (e) {
+    console.warn(`[content] ${label} fetch failed:`, e instanceof Error ? e.message : e)
+    return null
+  }
+}
+
+async function publishedRows<R>(
+  table: string,
+  orderBy: string,
+  ascending: boolean,
+): Promise<R[] | null> {
   const supabase = anonClient()
   if (!supabase) return null
   const { data, error } = await supabase
-    .from('insight_posts')
+    .from(table)
     .select('*')
     .eq('status', 'published')
-    .order('published_at', { ascending: false })
-  if (error) {
-    console.warn('[content] insights fetch failed:', error.message)
-    return null
-  }
-  return ((data || []) as InsightPostRow[]).map(insightRowToPost)
+    .order(orderBy, { ascending })
+  if (error) throw new Error(error.message)
+  return (data || []) as R[]
+}
+
+async function publishedRowBySlug<R>(table: string, slug: string): Promise<R | null> {
+  const supabase = anonClient()
+  if (!supabase) return null
+  const { data, error } = await supabase
+    .from(table)
+    .select('*')
+    .eq('slug', slug)
+    .eq('status', 'published')
+    .maybeSingle()
+  if (error) throw new Error(error.message)
+  return (data as R) ?? null
+}
+
+const cachedInsights = /* @__PURE__ */ unstable_cache(
+  async () => {
+    const rows = await publishedRows<InsightPostRow>('insight_posts', 'published_at', false)
+    return rows ? rows.map(insightRowToPost) : null
+  },
+  ['published-insights-v1'],
+  CACHE,
+)
+
+const cachedInsightBySlug = /* @__PURE__ */ unstable_cache(
+  async (slug: string) => {
+    const row = await publishedRowBySlug<InsightPostRow>('insight_posts', slug)
+    return row ? insightRowToPost(row) : null
+  },
+  ['published-insight-by-slug-v1'],
+  CACHE,
+)
+
+const cachedServices = /* @__PURE__ */ unstable_cache(
+  async () => {
+    const rows = await publishedRows<ServiceRow>('services', 'sort_order', true)
+    return rows ? rows.map(serviceRowToDetail) : null
+  },
+  ['published-services-v1'],
+  CACHE,
+)
+
+const cachedServiceBySlug = /* @__PURE__ */ unstable_cache(
+  async (slug: string) => {
+    const row = await publishedRowBySlug<ServiceRow>('services', slug)
+    return row ? serviceRowToDetail(row) : null
+  },
+  ['published-service-by-slug-v1'],
+  CACHE,
+)
+
+const cachedAgents = /* @__PURE__ */ unstable_cache(
+  async () => {
+    const rows = await publishedRows<AgentRow>('agents', 'sort_order', true)
+    return rows ? rows.map(agentRowToAgent) : null
+  },
+  ['published-agents-v1'],
+  CACHE,
+)
+
+const cachedReviews = /* @__PURE__ */ unstable_cache(
+  async () => {
+    const rows = await publishedRows<ReviewRow>('reviews', 'review_date', false)
+    return rows ? rows.map(reviewRowToReview) : null
+  },
+  ['published-reviews-v1'],
+  CACHE,
+)
+
+/** null = unset/unreachable; [] = empty published set */
+export async function fetchPublishedInsights(): Promise<BlogPost[] | null> {
+  return uncachedOnError('insights', cachedInsights)
 }
 
 export async function fetchPublishedInsightBySlug(
   slug: string,
 ): Promise<BlogPost | null> {
-  const supabase = anonClient()
-  if (!supabase) return null
-  const { data, error } = await supabase
-    .from('insight_posts')
-    .select('*')
-    .eq('slug', slug)
-    .eq('status', 'published')
-    .maybeSingle()
-  if (error || !data) return null
-  return insightRowToPost(data as InsightPostRow)
+  return uncachedOnError('insight', () => cachedInsightBySlug(slug))
 }
 
 export async function fetchPublishedServices(): Promise<ServiceDetail[] | null> {
-  const supabase = anonClient()
-  if (!supabase) return null
-  const { data, error } = await supabase
-    .from('services')
-    .select('*')
-    .eq('status', 'published')
-    .order('sort_order', { ascending: true })
-  if (error) {
-    console.warn('[content] services fetch failed:', error.message)
-    return null
-  }
-  return ((data || []) as ServiceRow[]).map(serviceRowToDetail)
+  return uncachedOnError('services', cachedServices)
 }
 
 export async function fetchPublishedServiceBySlug(
   slug: string,
 ): Promise<ServiceDetail | null> {
-  const supabase = anonClient()
-  if (!supabase) return null
-  const { data, error } = await supabase
-    .from('services')
-    .select('*')
-    .eq('slug', slug)
-    .eq('status', 'published')
-    .maybeSingle()
-  if (error || !data) return null
-  return serviceRowToDetail(data as ServiceRow)
+  return uncachedOnError('service', () => cachedServiceBySlug(slug))
 }
 
 export async function fetchPublishedAgents(): Promise<Agent[] | null> {
-  const supabase = anonClient()
-  if (!supabase) return null
-  const { data, error } = await supabase
-    .from('agents')
-    .select('*')
-    .eq('status', 'published')
-    .order('sort_order', { ascending: true })
-  if (error) {
-    console.warn('[content] agents fetch failed:', error.message)
-    return null
-  }
-  return ((data || []) as AgentRow[]).map(agentRowToAgent)
+  return uncachedOnError('agents', cachedAgents)
 }
 
 export async function fetchPublishedReviews(): Promise<Review[] | null> {
-  const supabase = anonClient()
-  if (!supabase) return null
-  const { data, error } = await supabase
-    .from('reviews')
-    .select('*')
-    .eq('status', 'published')
-    .order('review_date', { ascending: false })
-  if (error) {
-    console.warn('[content] reviews fetch failed:', error.message)
-    return null
-  }
-  return ((data || []) as ReviewRow[]).map(reviewRowToReview)
+  return uncachedOnError('reviews', cachedReviews)
 }

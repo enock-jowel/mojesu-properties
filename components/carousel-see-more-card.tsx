@@ -2,6 +2,7 @@
 
 import Link from 'next/link'
 import { sizedImageUrl } from '@/lib/media'
+import { useImagesVisible } from '@/components/deferred-images'
 
 /**
  * Mobile: sized to the padded track (~2.2 cards + peek). sm+: whole cards.
@@ -44,10 +45,11 @@ function MiniPropertyCard({
   preview: SeeMorePreview | null
   tone: string
 }) {
+  const imagesVisible = useImagesVisible()
   return (
     <div className="flex h-full w-full flex-col overflow-hidden rounded-[10px] bg-surface">
       <div className="relative min-h-0 flex-[1.2] overflow-hidden bg-surface-alt">
-        {preview ? (
+        {preview && !imagesVisible ? null : preview ? (
           // eslint-disable-next-line @next/next/no-img-element
           <img
             src={sizedImageUrl(preview.url, 160)}

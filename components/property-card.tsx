@@ -3,6 +3,7 @@
 import { useState } from 'react'
 import Image from 'next/image'
 import { cdnLoaderFor } from '@/lib/media'
+import { useImagesVisible } from '@/components/deferred-images'
 import Link from 'next/link'
 import { Heart } from 'lucide-react'
 import {
@@ -69,6 +70,7 @@ function CardShell({
   heartPop: boolean
   onFav: (e: React.SyntheticEvent) => void
 }) {
+  const showImage = useImagesVisible() || priority
   return (
     <div
       style={{ animationDelay: `${Math.min(index * 0.05, 0.4)}s` }}
@@ -78,22 +80,24 @@ function CardShell({
     >
       <Link href={href} className="block">
         <div className="relative aspect-[1/0.92] overflow-hidden rounded-2xl bg-surface-alt">
-          <Image
-            src={imageSrc}
-            loader={cdnLoaderFor(imageSrc)}
-            alt={imageAlt}
-            fill
-            sizes={
-              compact
-                ? '(max-width: 640px) 42vw, (max-width: 1024px) 28vw, 200px'
-                : '(max-width: 640px) 50vw, (max-width: 1024px) 33vw, 280px'
-            }
-            quality={65}
-            priority={priority}
-            fetchPriority={priority ? 'high' : 'auto'}
-            loading={priority ? undefined : 'lazy'}
-            className="object-cover transition-transform duration-500 group-hover:scale-[1.06]"
-          />
+          {showImage ? (
+            <Image
+              src={imageSrc}
+              loader={cdnLoaderFor(imageSrc)}
+              alt={imageAlt}
+              fill
+              sizes={
+                compact
+                  ? '(max-width: 640px) 42vw, (max-width: 1024px) 28vw, 200px'
+                  : '(max-width: 640px) 50vw, (max-width: 1024px) 33vw, 280px'
+              }
+              quality={65}
+              priority={priority}
+              fetchPriority={priority ? 'high' : 'auto'}
+              loading={priority ? undefined : 'lazy'}
+              className="object-cover transition-transform duration-500 group-hover:scale-[1.06]"
+            />
+          ) : null}
           <span
             className={`absolute left-2.5 top-2.5 rounded-full px-2 py-0.5 text-[10px] font-bold leading-none sm:left-3 sm:top-3 sm:px-2.5 sm:py-0.5 sm:text-[11px] ${
               listingMode === 'rent'

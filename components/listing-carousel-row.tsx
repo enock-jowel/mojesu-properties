@@ -4,6 +4,7 @@ import { useCallback, useEffect, useId, useRef, useState } from 'react'
 import Link from 'next/link'
 import { ChevronLeft, ChevronRight } from 'lucide-react'
 import { CarouselSeeMoreCard, type SeeMorePreview } from '@/components/carousel-see-more-card'
+import { ImagesVisibleContext } from '@/components/deferred-images'
 
 export function ListingCarouselRow({
   title,
@@ -11,6 +12,7 @@ export function ListingCarouselRow({
   seeAllHref,
   seeAllLabel = 'Show more',
   seeAllPreviews = [],
+  deferImages = false,
   children,
 }: {
   title: string
@@ -20,10 +22,34 @@ export function ListingCarouselRow({
   seeAllLabel?: string
   /** Cover images for the fanned “Show more” card */
   seeAllPreviews?: SeeMorePreview[]
+  /** Below-the-fold rows: hold photos until the row nears the viewport. */
+  deferImages?: boolean
   children: React.ReactNode
 }) {
   const labelId = useId()
+  const sectionRef = useRef<HTMLElement>(null)
   const scrollerRef = useRef<HTMLDivElement>(null)
+  const [imagesVisible, setImagesVisible] = useState(!deferImages)
+
+  useEffect(() => {
+    const el = sectionRef.current
+    if (imagesVisible || !el) return
+    if (typeof IntersectionObserver === 'undefined') {
+      setImagesVisible(true)
+      return
+    }
+    const io = new IntersectionObserver(
+      (entries) => {
+        if (entries.some((e) => e.isIntersecting)) {
+          setImagesVisible(true)
+          io.disconnect()
+        }
+      },
+      { rootMargin: '600px 0px' },
+    )
+    io.observe(el)
+    return () => io.disconnect()
+  }, [imagesVisible])
   const [canPrev, setCanPrev] = useState(false)
   const [canNext, setCanNext] = useState(false)
 
@@ -56,6 +82,7 @@ export function ListingCarouselRow({
 
   return (
     <section
+      ref={sectionRef}
       className="mb-10 sm:mb-12"
       aria-labelledby={labelId}
       role="group"
@@ -107,12 +134,14 @@ export function ListingCarouselRow({
           ref={scrollerRef}
           className="carousel-track gap-3 pb-1 sm:gap-4"
         >
-          {children}
-          <CarouselSeeMoreCard
-            href={seeAllHref}
-            label={seeAllLabel}
-            previews={seeAllPreviews}
-          />
+          <ImagesVisibleContext.Provider value={imagesVisible}>
+            {children}
+            <CarouselSeeMoreCard
+              href={seeAllHref}
+              label={seeAllLabel}
+              previews={seeAllPreviews}
+            />
+          </ImagesVisibleContext.Provider>
         </div>
       </div>
     </section>

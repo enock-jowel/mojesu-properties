@@ -27,20 +27,34 @@ function anonClient() {
   })
 }
 
-async function fetchKey<K extends SiteContentKey>(
-  key: K,
-): Promise<SiteContentMap[K]> {
-  const fallback = SITE_CONTENT_DEFAULTS[key]
-  try {
+/**
+ * Pages render per request (CSP nonce), so this read must be cached or every
+ * view pays a Supabase round trip per key. Errors throw so they aren't cached.
+ */
+const cachedSiteContentRow = /* @__PURE__ */ unstable_cache(
+  async (key: SiteContentKey): Promise<unknown> => {
     const supabase = anonClient()
-    if (!supabase) return fallback
+    if (!supabase) return null
     const { data, error } = await supabase
       .from('site_content')
       .select('data')
       .eq('key', key)
       .maybeSingle()
-    if (error || !data?.data) return fallback
-    return deepMerge(fallback, data.data as Partial<SiteContentMap[K]>)
+    if (error) throw new Error(error.message)
+    return data?.data ?? null
+  },
+  ['site-content-row-v1'],
+  { revalidate: 60, tags: ['site-content'] },
+)
+
+async function fetchKey<K extends SiteContentKey>(
+  key: K,
+): Promise<SiteContentMap[K]> {
+  const fallback = SITE_CONTENT_DEFAULTS[key]
+  try {
+    const raw = await cachedSiteContentRow(key)
+    if (!raw) return fallback
+    return deepMerge(fallback, raw as Partial<SiteContentMap[K]>)
   } catch {
     return fallback
   }

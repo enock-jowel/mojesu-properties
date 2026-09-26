@@ -1,7 +1,8 @@
 'use server'
 
-import { revalidatePath } from 'next/cache'
+import { revalidatePath, revalidateTag } from 'next/cache'
 import { requireStaff, type ActionResult } from '@/lib/admin/auth'
+import { CONTENT_CACHE_TAG } from '@/lib/content/queries'
 import type {
   AgentRow,
   AgentWriteInput,
@@ -14,6 +15,7 @@ import type {
 } from '@/lib/content/types'
 
 function revalidateContent(paths: string[] = []) {
+  revalidateTag(CONTENT_CACHE_TAG)
   revalidatePath('/')
   revalidatePath('/insights/')
   revalidatePath('/services/')

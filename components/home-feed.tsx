@@ -118,6 +118,7 @@ export function HomeFeed({
         subtitle={home.carousels.land.subtitle}
         seeAllHref="/land/"
         seeAllPreviews={carouselPreviews(landFull)}
+        deferImages
       >
         <HomeCarouselCards items={landForSale} />
       </ListingCarouselRow>
@@ -127,6 +128,7 @@ export function HomeFeed({
         subtitle={home.carousels.popularRentals.subtitle}
         seeAllHref="/rent/?use=residential"
         seeAllPreviews={carouselPreviews(popularRentalsFull)}
+        deferImages
       >
         <HomeCarouselCards items={popularRentals} />
       </ListingCarouselRow>
@@ -136,6 +138,7 @@ export function HomeFeed({
         subtitle={home.carousels.commercial.subtitle}
         seeAllHref="/buy/?use=commercial"
         seeAllPreviews={carouselPreviews(commercialFull)}
+        deferImages
       >
         <HomeCarouselCards items={commercial} />
       </ListingCarouselRow>
