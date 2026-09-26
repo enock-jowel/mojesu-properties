@@ -50,7 +50,7 @@ export async function generateMetadata({
 }): Promise<Metadata> {
   const { slug } = await params
   const item = await getCachedPropertyBySlug(slug)
-  if (!item) return { title: 'Listing — Mojesu' }
+  if (!item) return { title: 'Listing' }
   const cover = getCoverImage(item.images)
   const coverUrl = cover ? imageUrl(cover) : undefined
   const kind = getListingKindLabel(item)

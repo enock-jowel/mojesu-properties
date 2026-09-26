@@ -2,9 +2,11 @@ import Link from 'next/link'
 import { AREA_TIER_LABEL, type AreaTier } from '@/lib/areas'
 import {
   AREA_GUIDES,
+  AREAS_INDEX_FAQS,
   TIER_GUIDES,
   getTierGuide,
   type AreaGuide,
+  type GuideFaq,
   type TierGuide,
 } from '@/lib/area-guides'
 
@@ -76,7 +78,7 @@ export function AreasIndex({
         </ul>
       </section>
 
-      <section className="site-container pb-16 sm:pb-24">
+      <section className="site-container pb-10 sm:pb-14">
         <h2 className="text-lg font-extrabold text-ink sm:text-xl">
           All neighbourhood guides
         </h2>
@@ -101,6 +103,10 @@ export function AreasIndex({
           ))}
         </ul>
       </section>
+
+      <div className="site-container max-w-[800px] pb-16 sm:pb-24">
+        <GuideFaqs faqs={AREAS_INDEX_FAQS} title="Kampala neighbourhood FAQs" className="" />
+      </div>
     </main>
   )
 }
@@ -152,6 +158,8 @@ export function AreaGuideArticle({ guide }: { guide: AreaGuide }) {
         </ul>
       ) : null}
 
+      <GuideFaqs faqs={guide.faqs} title={`${guide.name} FAQs`} />
+
       <div className="mt-10 flex flex-wrap gap-3 border-t border-neutral-light pt-8">
         <GuideCta href={browseRentHref(guide.name)} label="Rent here" />
         <GuideCta href={browseBuyHref(guide.name)} label="Buy here" />
@@ -192,6 +200,8 @@ export function TierGuideArticle({
           ))}
         </div>
 
+        <GuideFaqs faqs={guide.faqs} />
+
         <div className="mt-10 flex flex-wrap gap-3 border-t border-neutral-light pt-8">
           <GuideCta
             href={browseTierHref(guide.tier, 'rent')}
@@ -229,6 +239,58 @@ export function TierGuideArticle({
         </ul>
       </section>
     </article>
+  )
+}
+
+/** Native &lt;details&gt; accordion — no client JS. */
+export function GuideFaqs({
+  faqs,
+  title = 'Frequently asked questions',
+  className = 'mt-10',
+}: {
+  faqs: GuideFaq[]
+  title?: string
+  className?: string
+}) {
+  if (!faqs.length) return null
+  return (
+    <section className={className} aria-labelledby="guide-faq-heading">
+      <h2 id="guide-faq-heading" className="text-lg font-extrabold text-ink sm:text-xl">
+        {title}
+      </h2>
+      <div className="mt-3">
+        {faqs.map((faq) => (
+          <details
+            key={faq.question}
+            name="guide-faq"
+            className="group border-b border-black/[0.08]"
+          >
+            <summary className="flex cursor-pointer list-none items-center justify-between gap-4 py-4 text-left [-webkit-tap-highlight-color:transparent] marker:content-none [&::-webkit-details-marker]:hidden">
+              <h3 className="text-[15px] font-semibold text-ink">{faq.question}</h3>
+              <span
+                className="inline-flex h-5 w-5 shrink-0 items-center justify-center text-neutral-muted transition-transform duration-300 group-open:rotate-180"
+                aria-hidden
+              >
+                <svg
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  strokeWidth="2"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  className="h-5 w-5"
+                >
+                  <path d="m6 9 6 6 6-6" />
+                </svg>
+              </span>
+            </summary>
+            <p className="pb-4 pr-8 text-[14.5px] leading-relaxed text-neutral-muted sm:text-[15px]">
+              {faq.answer}
+            </p>
+          </details>
+        ))}
+      </div>
+    </section>
   )
 }
 

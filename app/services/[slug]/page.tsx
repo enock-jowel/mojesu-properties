@@ -19,11 +19,12 @@ export async function generateMetadata({
 }): Promise<Metadata> {
   const { slug } = await params
   const service = await getServiceBySlug(slug)
-  if (!service) return { title: 'Service — Mojesu' }
+  if (!service) return { title: 'Service' }
 
   return {
-    title: `${service.name} — Mojesu Services`,
+    title: `${service.name} services`,
     description: service.heroDescription,
+    alternates: { canonical: `/services/${service.slug}/` },
   }
 }
 

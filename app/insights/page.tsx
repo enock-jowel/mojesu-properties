@@ -11,9 +11,10 @@ import { getHomeContent } from '@/lib/site-content/queries'
 export const revalidate = 60
 
 export const metadata: Metadata = {
-  title: 'Insights — Mojesu',
+  title: 'Insights',
   description:
     'Market trends, buying strategies, and neighborhood guides for Kampala real estate.',
+  alternates: { canonical: '/insights/' },
 }
 
 function formatDate(iso: string): string {
