@@ -1,5 +1,6 @@
 import type { Metadata } from 'next'
 import { headers } from 'next/headers'
+import { Analytics } from '@vercel/analytics/next'
 import { LockHorizontalPagePan } from '@/components/lock-horizontal-page-pan'
 import { SiteCatalogProvider } from '@/components/site-catalog-provider'
 import { OrganizationJsonLd } from '@/components/seo/organization-json-ld'
@@ -80,6 +81,7 @@ export default async function RootLayout({
         />
         <LockHorizontalPagePan />
         <SiteCatalogProvider value={catalog}>{children}</SiteCatalogProvider>
+        <Analytics />
       </body>
     </html>
   )
