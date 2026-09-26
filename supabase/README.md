@@ -61,5 +61,3 @@ into `viewing_bookings`, `property_submissions`, `contact_enquiries`, or
   `/api/contact-enquiries`, `/api/service-enquiries`.
 - Admin: `/admin/content` — insights, services, agents, reviews (`002`).
 - Featured flag: `006_listing_featured.sql` + CMS “Featured on home”.
-- Public area guides: `/areas/`, `/areas/[slug]/`, `/areas/tier/[tier]/`
-  (copy in `lib/area-guides.ts`).

@@ -10,11 +10,7 @@ exactly to CMS **Company** content and Organization JSON-LD (`name`, `address`,
 
 | Item | What shipped |
 |------|----------------|
-| Area guides | Indexable `/areas/`, `/areas/[slug]/`, `/areas/tier/[tier]/` with written local copy (`lib/area-guides.ts`) + links to live Rent/Buy/Land filters |
-| Sitemap | Area + tier URLs included in `app/sitemap.ts` |
-| Nav | Default header/footer **Areas** → `/areas/` (`DEFAULT_NAV`; re-seed site content or edit Nav in admin if DB already seeded) |
-| Home | Explore-by-area cards → tier guides; “All area guides” → `/areas/` |
-| Browse / detail | Filtered browse + listing detail link to matching area guide when known |
+| Area guides | Removed (Sep 2026): `/areas/` pages, home Explore-by-area strip, nav links and sitemap entries deleted. Old CMS nav links to `/areas` are stripped at read time. |
 | LocalBusiness | `geo` (Kampala CBD approx), `areaServed` Kampala / Wakiso / Mukono |
 
 ### Owner follow-up (GBP)

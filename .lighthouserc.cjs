@@ -10,7 +10,6 @@ module.exports = {
       url: [
         'http://localhost:3000/',
         'http://localhost:3000/rent/',
-        'http://localhost:3000/areas/',
       ],
       numberOfRuns: 1,
       settings: {

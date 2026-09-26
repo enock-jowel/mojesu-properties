@@ -46,7 +46,7 @@ export function AreasContentEditor({ initial }: { initial: AreasContent }) {
       <div>
         <h1 className="text-2xl font-extrabold text-ink">Area catalog</h1>
         <p className="mt-1 text-sm text-neutral-muted">
-          Neighborhoods shown in search autocomplete and explore-by-area.
+          Neighborhoods shown in search autocomplete and listing filters.
         </p>
       </div>
 

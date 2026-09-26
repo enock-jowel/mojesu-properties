@@ -31,7 +31,6 @@ Public Next.js App Router site for **rent / buy / land** listings, viewing booki
 |--------|------|------|
 | Marketing home | `/` | Listings + CMS site content |
 | Browse | `/rent/`, `/buy/`, `/land/` | `getProperties()` only |
-| Area guides | `/areas/`, `/areas/[slug]/`, `/areas/tier/[tier]/` | `lib/area-guides.ts` |
 | Listing detail | `/listings/[slug]/` | Supabase `listings` |
 | Lead forms | viewing / list-with-us / contact / services | API → service-role insert → optional Resend |
 | Admin | `/admin/*` | Staff/admin profiles only |
@@ -100,7 +99,6 @@ docs/                 This handoff + ops/SEO/copy docs
 | `lib/service-enquiries/*` | Service enquiry form |
 | `lib/requests/*` | Admin Requests inbox actions |
 | `lib/site-content/*` | CMS marketing copy / nav / areas catalog |
-| `lib/area-guides.ts` | Public neighbourhood guide copy |
 | `lib/supabase/*` | Browser / server / service-role clients |
 | `lib/api/rate-limit.ts` | Origin + rate limit + honeypot |
 
