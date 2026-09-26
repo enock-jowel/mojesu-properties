@@ -1,7 +1,8 @@
 'use client'
 
-import { useEffect, useMemo, useRef, useState } from 'react'
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import Image from 'next/image'
+import { cdnLoaderFor } from '@/lib/media'
 import { useRouter } from 'next/navigation'
 import {
   Building2,
@@ -221,30 +222,43 @@ export function HeroSearch({
   const [lazyCatalog, setLazyCatalog] = useState<Property[]>([])
   const mobileCatalog = properties.length > 0 ? properties : lazyCatalog
 
+  const catalogRequested = useRef(false)
+  const loadCatalog = useCallback(() => {
+    if (catalogRequested.current || properties.length > 0 || variant === 'embedded') {
+      return
+    }
+    catalogRequested.current = true
+    fetch('/api/public/properties/')
+      .then((r) => (r.ok ? r.json() : []))
+      .then((data: Property[]) => {
+        if (Array.isArray(data)) setLazyCatalog(data)
+      })
+      .catch(() => {
+        catalogRequested.current = false
+      })
+  }, [properties.length, variant])
+
+  // On slow networks the catalog must not compete with the hero image: wait
+  // for window load, then idle. Opening the sheet requests it immediately.
   useEffect(() => {
     if (properties.length > 0 || variant === 'embedded') return
-    let cancelled = false
-    const load = () => {
-      fetch('/api/public/properties/')
-        .then((r) => (r.ok ? r.json() : []))
-        .then((data: Property[]) => {
-          if (!cancelled && Array.isArray(data)) setLazyCatalog(data)
-        })
-        .catch(() => {})
-    }
-    const ric = window.requestIdleCallback?.(load, { timeout: 2500 })
-    if (ric == null) {
-      const t = window.setTimeout(load, 1200)
-      return () => {
-        cancelled = true
-        window.clearTimeout(t)
+    let ric: number | undefined
+    let timer: number | undefined
+    const schedule = () => {
+      if (window.requestIdleCallback) {
+        ric = window.requestIdleCallback(loadCatalog, { timeout: 4000 })
+      } else {
+        timer = window.setTimeout(loadCatalog, 1500)
       }
     }
+    if (document.readyState === 'complete') schedule()
+    else window.addEventListener('load', schedule, { once: true })
     return () => {
-      cancelled = true
-      window.cancelIdleCallback?.(ric)
+      window.removeEventListener('load', schedule)
+      if (ric !== undefined) window.cancelIdleCallback?.(ric)
+      if (timer !== undefined) window.clearTimeout(timer)
     }
-  }, [properties.length, variant])
+  }, [properties.length, variant, loadCatalog])
 
   const pillRef = useRef<HTMLDivElement>(null)
   const areaSearchRef = useRef<HTMLInputElement>(null)
@@ -398,6 +412,7 @@ export function HeroSearch({
   }
 
   function openMobileSheet(panel: MobilePanel = 'where') {
+    loadCatalog()
     setMobileSheetOpen(true)
     setMobilePanel(panel)
   }
@@ -477,11 +492,12 @@ export function HeroSearch({
         <div className="absolute inset-0 overflow-hidden">
           <Image
             src={backgroundSrc || ''}
+            loader={cdnLoaderFor(backgroundSrc || '')}
             alt={backgroundAlt || ''}
             fill
             priority
             fetchPriority="high"
-            quality={60}
+            quality={50}
             sizes="(max-width: 640px) 100vw, (max-width: 1024px) 100vw, 1200px"
             className="object-cover"
           />

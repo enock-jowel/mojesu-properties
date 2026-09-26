@@ -4,7 +4,7 @@ import { SiteFooter } from '@/components/site-footer'
 import { getAllServices } from '@/lib/services'
 import { ArrowPillLink } from '@/components/arrow-pill-button'
 import { getHomeContent } from '@/lib/site-content/queries'
-import { sizedImageUrl } from '@/lib/media'
+import { sizedImageSrcSet, sizedImageUrl } from '@/lib/media'
 
 export const revalidate = 60
 
@@ -48,6 +48,8 @@ export default async function ServicesIndexPage() {
                 {/* eslint-disable-next-line @next/next/no-img-element */}
                 <img
                   src={sizedImageUrl(service.image, 720)}
+                  srcSet={sizedImageSrcSet(service.image, [360, 540, 720])}
+                  sizes="(max-width: 640px) 92vw, (max-width: 1024px) 50vw, 420px"
                   alt={service.imageAlt}
                   width={720}
                   height={450}

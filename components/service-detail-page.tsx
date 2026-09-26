@@ -5,6 +5,7 @@ import Link from 'next/link'
 import { ChevronRight } from 'lucide-react'
 import type { ServiceDetail, ServiceOfferingItem } from '@/lib/services'
 import { ServiceEnquiryCard } from '@/components/service-enquiry-form'
+import { responsiveImg } from '@/lib/media'
 
 function OtherServices({
   others,
@@ -81,7 +82,7 @@ export function ServiceDetailPage({
       <header className="relative flex min-h-[320px] w-full max-w-full items-end overflow-hidden sm:min-h-[380px] lg:min-h-[420px]">
         {/* eslint-disable-next-line @next/next/no-img-element */}
         <img
-          src={service.image}
+          {...responsiveImg(service.image, [640, 1080, 1600], '100vw')}
           alt=""
           className="absolute inset-0 h-full w-full object-cover"
         />
@@ -164,7 +165,7 @@ export function ServiceDetailPage({
               <div className="relative mt-2 aspect-[1.89/1] w-full overflow-hidden rounded-lg bg-surface-alt">
                 {/* eslint-disable-next-line @next/next/no-img-element */}
                 <img
-                  src={service.whatWeDo.image}
+                  {...responsiveImg(service.whatWeDo.image, [480, 800, 1100], '(max-width: 1024px) 100vw, 600px')}
                   alt={service.whatWeDo.imageAlt}
                   className="h-full w-full object-cover"
                   loading="lazy"
@@ -236,7 +237,7 @@ export function ServiceDetailPage({
               <div className="relative mt-1 aspect-[1.89/1] w-full overflow-hidden rounded-lg bg-surface-alt">
                 {/* eslint-disable-next-line @next/next/no-img-element */}
                 <img
-                  src={service.process.image}
+                  {...responsiveImg(service.process.image, [480, 800, 1100], '(max-width: 1024px) 100vw, 600px')}
                   alt={service.process.imageAlt}
                   className="h-full w-full object-cover"
                   loading="lazy"

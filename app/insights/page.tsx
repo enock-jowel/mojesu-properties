@@ -7,6 +7,7 @@ import {
   getAllBlogPosts,
 } from '@/lib/blog'
 import { getHomeContent } from '@/lib/site-content/queries'
+import { responsiveImg } from '@/lib/media'
 
 export const revalidate = 60
 
@@ -62,7 +63,7 @@ export default async function InsightsIndexPage() {
                   <div className="relative aspect-[16/10] overflow-hidden rounded-2xl bg-surface-alt">
                     {/* eslint-disable-next-line @next/next/no-img-element */}
                     <img
-                      src={post.coverImage}
+                      {...responsiveImg(post.coverImage, [360, 540, 720], '(max-width: 640px) 92vw, (max-width: 1024px) 50vw, 420px')}
                       alt=""
                       loading="lazy"
                       decoding="async"

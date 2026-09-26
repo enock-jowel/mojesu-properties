@@ -2,6 +2,7 @@
 
 import { useState } from 'react'
 import Image from 'next/image'
+import { cdnLoaderFor } from '@/lib/media'
 import { useRouter } from 'next/navigation'
 import { ArrowLeft, ArrowUpRight, MapPin, Phone, X } from 'lucide-react'
 import { showToast } from '@/lib/toast'
@@ -492,6 +493,7 @@ export function ContactSection({
           <div className="absolute inset-0">
             <Image
               src={contact.backgroundImage}
+              loader={cdnLoaderFor(contact.backgroundImage)}
               alt=""
               fill
               sizes="(max-width: 768px) 100vw, 1200px"

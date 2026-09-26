@@ -13,6 +13,7 @@ import {
 } from 'node:fs'
 import { dirname, join, relative } from 'node:path'
 import { fileURLToPath } from 'node:url'
+import subsetFont from 'subset-font'
 
 const root = join(dirname(fileURLToPath(import.meta.url)), '..')
 const ICON_RE = /\bfi-(sr|rr|brands)-([a-z0-9-]+)\b/g
@@ -64,13 +65,16 @@ const SOURCES: Record<
   },
 }
 
-function main() {
+async function main() {
   const used = harvestIcons()
   const parts: string[] = [
     '/* Auto-generated — pnpm uicons:subset */',
     '.fi{display:inline-flex;align-items:center;justify-content:center}',
   ]
   const missing: string[] = []
+  const fontDir = join(root, 'styles/fonts')
+  mkdirSync(fontDir, { recursive: true })
+  let fontBytes = 0
 
   for (const [key, src] of Object.entries(SOURCES)) {
     const css = readFileSync(join(root, src.css), 'utf8')
@@ -79,24 +83,44 @@ function main() {
 
     const fontFace = css.match(/@font-face\{[^}]+\}/)?.[0]
     const family = css.match(src.familyRe)?.[0]
-    if (!fontFace || !family) {
+    const woff2 = fontFace?.match(/url\(\.\.\/(uicons-[^)]+\.woff2)\)/)?.[1]
+    const familyName = fontFace?.match(/font-family:([^;]+);/)?.[1]
+    if (!fontFace || !family || !woff2 || !familyName) {
       throw new Error(`Could not parse ${src.css}`)
     }
-    const rewritten = fontFace.replace(
-      /url\(\.\.\/(uicons-[^)]+)\)/g,
-      'url(../node_modules/@flaticon/flaticon-uicons/css/$1)',
-    )
-    parts.push(`/* ${key}: ${needed.length} icons */`, rewritten, family)
+
+    const rules: string[] = []
+    const glyphs: string[] = []
     for (const name of needed) {
       const rule = css.match(
         new RegExp(`\\.${name.replace(/-/g, '\\-')}:before\\{[^}]+\\}`),
       )?.[0]
-      if (!rule) {
+      const hex = rule?.match(/content:"\\([0-9a-f]+)"/i)?.[1]
+      if (!rule || !hex) {
         missing.push(name)
         continue
       }
-      parts.push(rule)
+      rules.push(rule)
+      glyphs.push(String.fromCodePoint(parseInt(hex, 16)))
     }
+
+    // Full packs are 300KB+ each; only ship the glyphs referenced in source.
+    const full = readFileSync(
+      join(root, 'node_modules/@flaticon/flaticon-uicons/css', woff2),
+    )
+    const subset = await subsetFont(full, glyphs.join(''), {
+      targetFormat: 'woff2',
+    })
+    const fontFile = `uicons-${key}.woff2`
+    writeFileSync(join(fontDir, fontFile), subset)
+    fontBytes += subset.length
+
+    parts.push(
+      `/* ${key}: ${rules.length} icons */`,
+      `@font-face{font-family:${familyName};src:url(./fonts/${fontFile}) format("woff2");font-display:swap}`,
+      family,
+      ...rules,
+    )
   }
 
   const outPath = join(root, 'styles/uicons-subset.css')
@@ -104,11 +128,11 @@ function main() {
   const body = `${parts.join('\n')}\n`
   writeFileSync(outPath, body)
   console.log(
-    `uicons subset: ${used.size} icons from source → ${relative(root, outPath)} (${body.length} bytes)`,
+    `uicons subset: ${used.size} icons from source → ${relative(root, outPath)} (${body.length} bytes CSS, ${fontBytes} bytes fonts)`,
   )
   if (missing.length) {
     console.warn('Missing glyph CSS (skipped):', missing.join(', '))
   }
 }
 
-main()
+void main()

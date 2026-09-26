@@ -5,6 +5,7 @@ import { createClient } from '@/lib/supabase/server'
 import { requireStaff, type ActionResult } from '@/lib/admin/auth'
 import { publishBlocked } from '@/lib/listings/publish'
 import { slugifyTitle } from '@/lib/listings/map'
+import { isAllowedListingImageUrl } from '@/lib/media'
 import type { ListingWriteInput, ListingRow } from '@/lib/listings/types'
 
 export type { ActionResult }
@@ -121,6 +122,14 @@ export async function saveListing(
 ): Promise<ActionResult<{ id: string; slug: string }>> {
   const gate = await requireStaff()
   if (gate.error || !gate.user) return { ok: false, error: gate.error || 'Unauthorized' }
+
+  const badImage = input.images.find((img) => !isAllowedListingImageUrl(img.url))
+  if (badImage) {
+    return {
+      ok: false,
+      error: `Photo URL not allowed: ${badImage.url}. Use a Cloudinary (res.cloudinary.com) link or upload the file.`,
+    }
+  }
 
   let status = input.status
   if (status === 'published') {

@@ -6,7 +6,8 @@ import {
 import type { SectionIntro } from '@/lib/site-content/types'
 import { CarouselSeeMoreCard } from '@/components/carousel-see-more-card'
 import { ArrowPillLink } from '@/components/arrow-pill-button'
-import { sizedImageUrl } from '@/lib/media'
+import { LazyImg } from '@/components/lazy-img'
+import { sizedImageSrcSet, sizedImageUrl } from '@/lib/media'
 
 function formatDate(iso: string): string {
   return new Date(iso).toLocaleDateString('en-GB', {
@@ -23,14 +24,13 @@ export function BlogCard({ post }: { post: BlogPost }) {
     <article className="group w-full text-left">
       <Link href={href} className="block">
         <div className="relative aspect-[16/10] overflow-hidden rounded-2xl bg-surface-alt">
-          {/* eslint-disable-next-line @next/next/no-img-element */}
-          <img
+          <LazyImg
             src={sizedImageUrl(post.coverImage, 720)}
+            srcSet={sizedImageSrcSet(post.coverImage, [360, 540, 720])}
+            sizes="(max-width: 640px) 88vw, (max-width: 1024px) 50vw, 400px"
             alt=""
             width={720}
             height={450}
-            loading="lazy"
-            decoding="async"
             className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-[1.05]"
           />
           <span className="absolute left-3 top-3 rounded-full bg-pill-soft-mid px-3 py-1 text-[11px] font-bold text-ink">

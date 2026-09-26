@@ -2,7 +2,8 @@
 
 import type { Agent } from '@/lib/agents'
 import type { SectionIntro } from '@/lib/site-content/types'
-import { sizedImageUrl } from '@/lib/media'
+import { LazyImg } from '@/components/lazy-img'
+import { sizedImageSrcSet, sizedImageUrl } from '@/lib/media'
 
 function AgentCard({ agent }: { agent: Agent }) {
   return (
@@ -12,14 +13,13 @@ function AgentCard({ agent }: { agent: Agent }) {
         aria-label={`Contact ${agent.name}, ${agent.role}`}
         className="relative block aspect-[1/0.95] overflow-hidden rounded-[10px] bg-surface-alt"
       >
-        {/* eslint-disable-next-line @next/next/no-img-element */}
-        <img
+        <LazyImg
           src={sizedImageUrl(agent.photoUrl, 400)}
+          srcSet={sizedImageSrcSet(agent.photoUrl, [240, 400])}
+          sizes="(max-width: 640px) 45vw, 260px"
           alt={agent.name}
           width={400}
           height={380}
-          loading="lazy"
-          decoding="async"
           className="h-full w-full object-cover object-top transition-transform duration-500 group-hover:scale-[1.04]"
         />
       </a>

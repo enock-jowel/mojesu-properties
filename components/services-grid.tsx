@@ -1,20 +1,20 @@
 import type { ServiceDetail } from '@/lib/services'
 import type { SectionIntro } from '@/lib/site-content/types'
 import { ArrowPillLink } from '@/components/arrow-pill-button'
-import { sizedImageUrl } from '@/lib/media'
+import { LazyImg } from '@/components/lazy-img'
+import { sizedImageSrcSet, sizedImageUrl } from '@/lib/media'
 
 function ServiceCard({ service }: { service: ServiceDetail }) {
   return (
     <article className="group relative aspect-[16/10] overflow-hidden rounded-2xl bg-surface-alt">
-      {/* eslint-disable-next-line @next/next/no-img-element */}
-      <img
+      <LazyImg
         src={sizedImageUrl(service.image, 720)}
+        srcSet={sizedImageSrcSet(service.image, [360, 540, 720])}
+        sizes="(max-width: 640px) 92vw, (max-width: 1024px) 50vw, 400px"
         alt={service.imageAlt}
         width={720}
         height={450}
         className="absolute inset-0 h-full w-full object-cover transition-transform duration-500 ease-out group-hover:scale-[1.05]"
-        loading="lazy"
-        decoding="async"
       />
 
       <div

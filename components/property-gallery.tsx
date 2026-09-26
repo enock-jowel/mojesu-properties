@@ -2,6 +2,7 @@
 
 import { useCallback, useEffect, useRef, useState } from 'react'
 import Image from 'next/image'
+import { cdnLoaderFor, responsiveImg, sizedImageUrl } from '@/lib/media'
 import { ChevronLeft, ChevronRight, X } from 'lucide-react'
 import {
   imageUrl,
@@ -77,6 +78,7 @@ export function PropertyGallery({ item }: { item: Property }) {
                 {mountImage ? (
                   <Image
                     src={imageUrl(img)}
+                    loader={cdnLoaderFor(imageUrl(img))}
                     alt={img.alt || `${item.title} photo ${i + 1}`}
                     fill
                     sizes="100vw"
@@ -122,6 +124,7 @@ export function PropertyGallery({ item }: { item: Property }) {
             {hero ? (
               <Image
                 src={imageUrl(hero)}
+                loader={cdnLoaderFor(imageUrl(hero))}
                 alt={hero.alt || item.title}
                 fill
                 sizes="(min-width: 768px) 50vw, 100vw"
@@ -153,6 +156,7 @@ export function PropertyGallery({ item }: { item: Property }) {
                 >
                   <Image
                     src={imageUrl(img)}
+                    loader={cdnLoaderFor(imageUrl(img))}
                     alt={img.alt || `${item.title} photo ${absIdx + 1}`}
                     fill
                     sizes="25vw"
@@ -252,7 +256,7 @@ function Lightbox({
         </button>
         {/* eslint-disable-next-line @next/next/no-img-element */}
         <img
-          src={imageUrl(images[index])}
+          {...responsiveImg(imageUrl(images[index]), [640, 1080, 1600], '100vw', 65)}
           alt={images[index]?.alt || `${title} photo ${index + 1}`}
           className="max-h-[78vh] max-w-full rounded-xl object-contain"
         />
@@ -278,7 +282,7 @@ function Lightbox({
           >
             {/* eslint-disable-next-line @next/next/no-img-element */}
             <img
-              src={imageUrl(img)}
+              src={sizedImageUrl(imageUrl(img), 160)}
               alt=""
               className="h-full w-full object-cover"
             />

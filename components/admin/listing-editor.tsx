@@ -39,6 +39,7 @@ import type {
 import { MIN_LISTING_IMAGES, validateListingImages } from '@/lib/listing-validation'
 import { publishBlocked } from '@/lib/listings/publish'
 import { createClient } from '@/lib/supabase/client'
+import { cdnLoaderFor, isAllowedListingImageUrl } from '@/lib/media'
 import type { AreaTier } from '@/lib/areas'
 
 type Step = 'type' | 'details' | 'photos' | 'amenities' | 'pricing' | 'review'
@@ -222,6 +223,7 @@ export function ListingEditor({
   const [images, setImages] = useState<DraftImage[]>(seed.images)
   const [error, setError] = useState<string | null>(null)
   const [uploading, setUploading] = useState(false)
+  const [urlDraft, setUrlDraft] = useState('')
   const [pending, startTransition] = useTransition()
   const stepIndex = STEPS.indexOf(step)
 
@@ -302,6 +304,34 @@ export function ListingEditor({
     } finally {
       setUploading(false)
     }
+  }
+
+  function addImageUrls() {
+    const urls = urlDraft.split(/[\s,]+/).map((u) => u.trim()).filter(Boolean)
+    if (!urls.length) return
+    const bad = urls.filter((u) => !isAllowedListingImageUrl(u))
+    if (bad.length) {
+      setError(
+        `Not a Cloudinary image link: ${bad[0]}. Copy the image URL from Cloudinary (it starts with https://res.cloudinary.com/).`,
+      )
+      return
+    }
+    setError(null)
+    setImages((prev) => {
+      const known = new Set(prev.map((img) => img.url))
+      const fresh = urls.filter((u) => !known.has(u))
+      return [
+        ...prev,
+        ...fresh.map((url, i) => ({
+          localId: crypto.randomUUID(),
+          url,
+          is_cover: prev.length === 0 && i === 0,
+          room_tag: null,
+          sort_order: prev.length + i,
+        })),
+      ]
+    })
+    setUrlDraft('')
   }
 
   function moveImage(index: number, dir: -1 | 1) {
@@ -796,6 +826,36 @@ export function ListingEditor({
                 onChange={(e) => void onPickFiles(e.target.files)}
               />
             </label>
+            <div className="flex flex-col gap-2">
+              <label
+                htmlFor="listing-image-urls"
+                className="text-sm font-semibold text-ink"
+              >
+                Or paste Cloudinary image links
+              </label>
+              <textarea
+                id="listing-image-urls"
+                rows={3}
+                value={urlDraft}
+                onChange={(e) => setUrlDraft(e.target.value)}
+                placeholder="https://res.cloudinary.com/your-cloud/image/upload/v123/house-front.jpg"
+                className={`${fieldClass} font-mono text-xs`}
+              />
+              <div className="flex items-center justify-between gap-3">
+                <p className="text-xs text-neutral-muted">
+                  One link per line. Cloudinary resizes each photo for the
+                  visitor&apos;s screen, so pages stay light on slow networks.
+                </p>
+                <button
+                  type="button"
+                  onClick={addImageUrls}
+                  disabled={!urlDraft.trim()}
+                  className="shrink-0 rounded-full bg-primary px-4 py-1.5 text-xs font-bold text-white transition-colors hover:bg-primary-dark disabled:opacity-50"
+                >
+                  Add links
+                </button>
+              </div>
+            </div>
             <ul className="grid grid-cols-2 gap-3 sm:grid-cols-3">
               {images.map((img, i) => (
                 <li
@@ -805,6 +865,7 @@ export function ListingEditor({
                   <div className="relative aspect-[4/3]">
                     <Image
                       src={img.preview || img.url}
+                      loader={cdnLoaderFor(img.preview || img.url)}
                       alt=""
                       fill
                       className="object-cover"

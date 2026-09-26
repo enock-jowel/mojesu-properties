@@ -2,6 +2,7 @@
 
 import { useState } from 'react'
 import Image from 'next/image'
+import { cdnLoaderFor } from '@/lib/media'
 import Link from 'next/link'
 import { Heart } from 'lucide-react'
 import {
@@ -79,6 +80,7 @@ function CardShell({
         <div className="relative aspect-[1/0.92] overflow-hidden rounded-2xl bg-surface-alt">
           <Image
             src={imageSrc}
+            loader={cdnLoaderFor(imageSrc)}
             alt={imageAlt}
             fill
             sizes={

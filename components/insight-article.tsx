@@ -6,6 +6,7 @@ import {
 } from '@/lib/blog'
 import { BlogCard } from '@/components/blog-section'
 import { CarouselSeeMoreCard } from '@/components/carousel-see-more-card'
+import { responsiveImg } from '@/lib/media'
 
 function formatDate(iso: string): string {
   return new Date(iso).toLocaleDateString('en-US', {
@@ -158,7 +159,7 @@ export function InsightArticle({
           <div className="relative aspect-[1.9/1] w-full max-w-[1300px] overflow-hidden rounded-[10px] bg-surface-alt">
             {/* eslint-disable-next-line @next/next/no-img-element */}
             <img
-              src={post.coverImage}
+              {...responsiveImg(post.coverImage, [480, 800, 1200], '(max-width: 768px) 100vw, 900px')}
               alt=""
               className="h-full w-full max-w-full object-cover"
               draggable={false}

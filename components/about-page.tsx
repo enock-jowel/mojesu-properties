@@ -6,6 +6,7 @@ import { AgentsSection } from '@/components/agents-section'
 import type { Agent } from '@/lib/agents'
 import { ContactSection } from '@/components/contact-section'
 import { ArrowPillLink } from '@/components/arrow-pill-button'
+import { responsiveImg } from '@/lib/media'
 import type {
   AboutContent,
   CompanyContent,
@@ -77,7 +78,7 @@ export function AboutPage({
             <div className="col-span-2 overflow-hidden rounded-[12px] bg-surface">
               {/* eslint-disable-next-line @next/next/no-img-element */}
               <img
-                src={ABOUT_HERO.images.primary}
+                {...responsiveImg(ABOUT_HERO.images.primary, [480, 800, 1200], '(max-width: 768px) 100vw, 60vw')}
                 alt=""
                 className="aspect-[16/9] h-full w-full object-cover"
               />
@@ -85,7 +86,7 @@ export function AboutPage({
             <div className="overflow-hidden rounded-[12px] bg-surface">
               {/* eslint-disable-next-line @next/next/no-img-element */}
               <img
-                src={ABOUT_HERO.images.secondary}
+                {...responsiveImg(ABOUT_HERO.images.secondary, [360, 600, 800], '(max-width: 768px) 50vw, 30vw')}
                 alt=""
                 className="aspect-[4/3] h-full w-full object-cover"
               />
@@ -128,7 +129,7 @@ export function AboutPage({
               <div className="overflow-hidden rounded-[16px] bg-surface-alt">
                 {/* eslint-disable-next-line @next/next/no-img-element */}
                 <img
-                  src={ABOUT_STORY.images.left}
+                  {...responsiveImg(ABOUT_STORY.images.left, [360, 600, 800], '(max-width: 768px) 50vw, 400px')}
                   alt=""
                   className="aspect-[3/4] w-full object-cover"
                   loading="lazy"
@@ -137,7 +138,7 @@ export function AboutPage({
               <div className="overflow-hidden rounded-[16px] bg-surface-alt">
                 {/* eslint-disable-next-line @next/next/no-img-element */}
                 <img
-                  src={ABOUT_STORY.images.right}
+                  {...responsiveImg(ABOUT_STORY.images.right, [360, 600, 800], '(max-width: 768px) 50vw, 400px')}
                   alt=""
                   className="aspect-[3/4] w-full object-cover"
                   loading="lazy"
@@ -186,7 +187,7 @@ export function AboutPage({
             <div className="overflow-hidden rounded-[20px] bg-surface-alt">
               {/* eslint-disable-next-line @next/next/no-img-element */}
               <img
-                src={ABOUT_STORY.images.left}
+                {...responsiveImg(ABOUT_STORY.images.left, [360, 600, 800], '(max-width: 768px) 50vw, 400px')}
                 alt=""
                 className="aspect-[3/4] w-full object-cover"
                 loading="lazy"
@@ -231,7 +232,7 @@ export function AboutPage({
             <div className="overflow-hidden rounded-[20px] bg-surface-alt">
               {/* eslint-disable-next-line @next/next/no-img-element */}
               <img
-                src={ABOUT_STORY.images.right}
+                {...responsiveImg(ABOUT_STORY.images.right, [360, 600, 800], '(max-width: 768px) 50vw, 400px')}
                 alt=""
                 className="aspect-[3/4] w-full object-cover"
                 loading="lazy"
@@ -257,7 +258,7 @@ export function AboutPage({
               <>
                 {/* eslint-disable-next-line @next/next/no-img-element */}
                 <img
-                  src={ABOUT_VIDEO.image}
+                  {...responsiveImg(ABOUT_VIDEO.image, [640, 1080, 1600], '(max-width: 768px) 100vw, 1200px')}
                   alt=""
                   className="absolute inset-0 h-full w-full object-cover"
                   loading="lazy"
@@ -304,7 +305,7 @@ export function AboutPage({
             <div className="mt-2 w-full overflow-hidden rounded-[16px] bg-surface">
               {/* eslint-disable-next-line @next/next/no-img-element */}
               <img
-                src={ABOUT_APPROACH.image}
+                {...responsiveImg(ABOUT_APPROACH.image, [480, 800, 1100], '(max-width: 768px) 100vw, 600px')}
                 alt=""
                 className="aspect-[16/10] w-full object-cover"
                 loading="lazy"

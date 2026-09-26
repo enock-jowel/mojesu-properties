@@ -19,8 +19,13 @@ const nextConfig: NextConfig = {
     optimizePackageImports: ['lucide-react', 'recharts'],
   },
   images: {
+    minimumCacheTTL: 60 * 60 * 24 * 30,
     qualities: [50, 55, 60, 65, 70, 75],
     remotePatterns: [
+      {
+        protocol: 'https',
+        hostname: 'res.cloudinary.com',
+      },
       {
         protocol: 'https',
         hostname: '**.supabase.co',

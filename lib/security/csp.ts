@@ -24,7 +24,7 @@ export function buildContentSecurityPolicy(nonce: string, isDev: boolean): strin
     `script-src ${scriptSrc}`,
     "style-src 'self' 'unsafe-inline'",
     "font-src 'self' data:",
-    "img-src 'self' data: blob: https://images.unsplash.com https://*.supabase.co https://i.ytimg.com https://framerusercontent.com https://lh3.googleusercontent.com https://*.googleusercontent.com",
+    "img-src 'self' data: blob: https://res.cloudinary.com https://images.unsplash.com https://*.supabase.co https://i.ytimg.com https://framerusercontent.com https://lh3.googleusercontent.com https://*.googleusercontent.com",
     "connect-src 'self' https://*.supabase.co wss://*.supabase.co https://places.googleapis.com https://challenges.cloudflare.com",
     "frame-src 'self' https://www.youtube-nocookie.com https://www.youtube.com https://challenges.cloudflare.com",
     "media-src 'self'",

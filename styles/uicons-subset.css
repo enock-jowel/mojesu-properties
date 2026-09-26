@@ -1,7 +1,7 @@
 /* Auto-generated — pnpm uicons:subset */
 .fi{display:inline-flex;align-items:center;justify-content:center}
-/* sr: 50 icons */
-@font-face{font-family:uicons-solid-rounded;src:url(../node_modules/@flaticon/flaticon-uicons/css/uicons-solid-rounded-IYSBBSWN.woff2) format("woff2"),url(../node_modules/@flaticon/flaticon-uicons/css/uicons-solid-rounded-UWVI4CEC.woff) format("woff"),url(../node_modules/@flaticon/flaticon-uicons/css/uicons-solid-rounded-N5CQNTC6.eot#iefix) format("embedded-opentype");font-display:swap}
+/* sr: 47 icons */
+@font-face{font-family:uicons-solid-rounded;src:url(./fonts/uicons-sr.woff2) format("woff2");font-display:swap}
 i[class^=fi-sr-]:before,i[class*=" fi-sr-"]:before,span[class^=fi-sr-]:before,span[class*=fi-sr-]:before{font-family:uicons-solid-rounded!important;font-style:normal;font-weight:400!important;font-variant:normal;text-transform:none;line-height:1;-webkit-font-smoothing:antialiased;-moz-osx-font-smoothing:grayscale}
 .fi-sr-air-conditioner:before{content:"\f12a"}
 .fi-sr-bath:before{content:"\f21f"}
@@ -51,7 +51,7 @@ i[class^=fi-sr-]:before,i[class*=" fi-sr-"]:before,span[class^=fi-sr-]:before,sp
 .fi-sr-wifi:before{content:"\fede"}
 .fi-sr-wrench-simple:before{content:"\fefa"}
 /* rr: 31 icons */
-@font-face{font-family:uicons-regular-rounded;src:url(../node_modules/@flaticon/flaticon-uicons/css/uicons-regular-rounded-J3WOUERV.woff2) format("woff2"),url(../node_modules/@flaticon/flaticon-uicons/css/uicons-regular-rounded-KDJ23353.woff) format("woff"),url(../node_modules/@flaticon/flaticon-uicons/css/uicons-regular-rounded-ESQGLQQ4.eot#iefix) format("embedded-opentype");font-display:swap}
+@font-face{font-family:uicons-regular-rounded;src:url(./fonts/uicons-rr.woff2) format("woff2");font-display:swap}
 i[class^=fi-rr-]:before,i[class*=" fi-rr-"]:before,span[class^=fi-rr-]:before,span[class*=fi-rr-]:before{font-family:uicons-regular-rounded!important;font-style:normal;font-weight:400!important;font-variant:normal;text-transform:none;line-height:1;-webkit-font-smoothing:antialiased;-moz-osx-font-smoothing:grayscale}
 .fi-rr-arrow-up-right-from-square:before{content:"\f1b3"}
 .fi-rr-bank:before{content:"\f20a"}
@@ -85,7 +85,7 @@ i[class^=fi-rr-]:before,i[class*=" fi-rr-"]:before,span[class^=fi-rr-]:before,sp
 .fi-rr-users:before{content:"\fea6"}
 .fi-rr-wallet:before{content:"\fedc"}
 /* brands: 4 icons */
-@font-face{font-family:uicons-brands;src:url(../node_modules/@flaticon/flaticon-uicons/css/uicons-brands-XJPKRNBN.woff2) format("woff2"),url(../node_modules/@flaticon/flaticon-uicons/css/uicons-brands-PQBQF6T3.woff) format("woff"),url(../node_modules/@flaticon/flaticon-uicons/css/uicons-brands-ZJWE2ELA.eot#iefix) format("embedded-opentype");font-display:swap}
+@font-face{font-family:uicons-brands;src:url(./fonts/uicons-brands.woff2) format("woff2");font-display:swap}
 i[class^=fi-brands-]:before,i[class*=" fi-brands-"]:before,span[class^=fi-brands-]:before,span[class*=fi-brands-]:before{font-family:uicons-brands!important;font-style:normal;font-weight:400!important;font-variant:normal;text-transform:none;line-height:1;-webkit-font-smoothing:antialiased;-moz-osx-font-smoothing:grayscale}
 .fi-brands-instagram:before{content:"\f16e"}
 .fi-brands-linkedin:before{content:"\f17b"}

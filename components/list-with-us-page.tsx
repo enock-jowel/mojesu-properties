@@ -6,6 +6,7 @@ import { ChevronRight } from 'lucide-react'
 import type { ServiceDetail } from '@/lib/services'
 import type { ListWithUsContent } from '@/lib/site-content/types'
 import { ListWithUsEnquiryCard } from '@/components/list-with-us-form'
+import { responsiveImg } from '@/lib/media'
 
 function RelatedServices({ related }: { related: ServiceDetail[] }) {
   if (related.length === 0) return null
@@ -80,7 +81,7 @@ export function ListWithUsPage({
       <header className="relative flex min-h-[320px] items-end overflow-hidden sm:min-h-[380px] lg:min-h-[420px]">
         {/* eslint-disable-next-line @next/next/no-img-element */}
         <img
-          src={content.image}
+          {...responsiveImg(content.image, [640, 1080, 1600], '100vw')}
           alt=""
           className="absolute inset-0 h-full w-full object-cover"
         />
@@ -151,7 +152,7 @@ export function ListWithUsPage({
               <div className="relative mt-2 aspect-[1.89/1] w-full overflow-hidden rounded-lg bg-surface-alt">
                 {/* eslint-disable-next-line @next/next/no-img-element */}
                 <img
-                  src={content.whatWeDo.image}
+                  {...responsiveImg(content.whatWeDo.image, [480, 800, 1100], '(max-width: 1024px) 100vw, 600px')}
                   alt={content.whatWeDo.imageAlt}
                   className="h-full w-full object-cover"
                   loading="lazy"
@@ -245,7 +246,7 @@ export function ListWithUsPage({
               <div className="relative mt-1 aspect-[1.89/1] w-full overflow-hidden rounded-lg bg-surface-alt">
                 {/* eslint-disable-next-line @next/next/no-img-element */}
                 <img
-                  src={content.process.image}
+                  {...responsiveImg(content.process.image, [480, 800, 1100], '(max-width: 1024px) 100vw, 600px')}
                   alt={content.process.imageAlt}
                   className="h-full w-full object-cover"
                   loading="lazy"
