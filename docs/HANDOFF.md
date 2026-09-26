@@ -251,8 +251,8 @@ See also root `.env.example`.
 | `NEXT_PUBLIC_SITE_URL` | Canonical URLs, emails | Yes |
 | `SITE_URL` | Server-side notify / absolute links | No |
 | `NEXT_PUBLIC_SUPABASE_URL` | All Supabase | Yes |
-| `NEXT_PUBLIC_SUPABASE_ANON_KEY` | Browser + middleware | Yes (RLS-scoped) |
-| `SUPABASE_SERVICE_ROLE_KEY` | API lead inserts, admin service tasks | **Secret** |
+| `NEXT_PUBLIC_SUPABASE_ANON_KEY` | Browser + middleware — holds the `sb_publishable_…` key | Yes (RLS-scoped) |
+| `SUPABASE_SERVICE_ROLE_KEY` | API lead inserts, admin service tasks — holds the `sb_secret_…` key | **Secret** |
 | `NOTIFY_EMAIL_TO` | Resend destination | Prefer secret |
 | `NOTIFY_EMAIL_FROM` | Resend from header | Prefer secret |
 | `RESEND_API_KEY` | Sending mail | **Secret** |
@@ -265,6 +265,10 @@ See also root `.env.example`.
 | `OPEN_NEXT_BUILD` | CF build only | Script-set |
 
 Vercel: set on **mojesu-preview** for Production + Preview + Development (already synced for mdbx + Resend as of handoff).
+
+**Key rotation (2026-09-26).** Supabase legacy `anon`/`service_role` JWT keys are **disabled** and the legacy HS256 JWT secret is **revoked**; auth now signs with an ECC (ES256) key. The app uses the new publishable key and the `mojesu_server_2026_09` secret key (env var names unchanged). To rotate again: create a new secret key in Supabase → API Keys, then `SUPABASE_NEW_SECRET=… bash scripts/rotate-supabase-keys.sh sb_publishable_…`, redeploy, and delete the old secret key. Resend now uses a **sending-only** key `mojesu-site-send-2026-09` scoped to the domain; old keys deleted. Manage Resend keys from the dashboard (the site key can't). The Cloudflare preview Worker `mojesu-preview` got the new secret but still has the old public key baked in — rebuild it before relying on it.
+
+**Analytics.** Vercel Web Analytics (`@vercel/analytics`, `<Analytics />` in `app/layout.tsx`) — Vercel → mojesu-preview → Analytics. Script loads from same-origin `/_vercel/insights/`, so the CSP needs no change.
 
 ---
 
