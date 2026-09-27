@@ -10,8 +10,6 @@ import {
 } from '@/lib/properties'
 import { RoofMark } from './roof-mark'
 import { PropertyCard } from './property-card'
-import { useFavorites } from '@/lib/favorites'
-
 export interface Filters {
   area: string
   listingMode: ListingMode | 'all'
@@ -52,8 +50,6 @@ export function HomeExperience({
 }) {
   const [filters, setFiltersState] = useState<Filters>(DEFAULTS)
   const [activeChip, setActiveChip] = useState('all')
-  const { favorites, toggleFav } = useFavorites()
-
   function setFilters(next: Partial<Filters>) {
     setFiltersState((prev) => ({ ...prev, ...next }))
   }
@@ -168,8 +164,6 @@ export function HomeExperience({
                   key={item.id}
                   item={item}
                   index={i}
-                  isFav={favorites.has(item.id)}
-                  onToggleFav={toggleFav}
                 />
               ))}
             </div>

@@ -30,6 +30,7 @@ import { SiteLogo } from '@/components/site-logo'
 import {
   useAreasCatalog,
   useTaxonomy,
+  useInventory,
   useTypeOptions,
 } from '@/components/site-catalog-provider'
 import { areasGroupedFrom } from '@/lib/site-content/catalog-helpers'
@@ -41,6 +42,7 @@ function isMobileSearchViewport() {
 }
 
 export type MainTab = 'rent' | 'buy' | 'land'
+const MAIN_TAB_IDS: MainTab[] = ['rent', 'buy', 'land']
 export type SubTab = HeroSubTab
 
 type OpenSegment = 'where' | 'type' | 'budget' | 'title' | null
@@ -196,11 +198,23 @@ export function HeroSearch({
   )
   const embedded = variant === 'embedded'
 
+  const inventory = useInventory()
+  const anyMain = MAIN_TAB_IDS.some((id) => inventory.hasMain(id))
+  /** Hide empty intents; the page's own intent stays so embedded search never loses its tab. */
+  const showMain = (id: MainTab) => !anyMain || inventory.hasMain(id) || id === initialMainTab
+  const firstSubFor = (main: MainTab): SubTab =>
+    subTabsFor(main, taxonomy.heroSubTabs).find((t) => inventory.hasSub(main, t.id))?.id ??
+    DEFAULT_HERO_CRITERIA.subTab
+
   const [activeMainTab, setActiveMainTab] = useState<MainTab>(
-    initialMainTab ?? DEFAULT_HERO_CRITERIA.mainTab,
+    () =>
+      initialMainTab ??
+      (showMain(DEFAULT_HERO_CRITERIA.mainTab)
+        ? DEFAULT_HERO_CRITERIA.mainTab
+        : (MAIN_TAB_IDS.find(showMain) ?? DEFAULT_HERO_CRITERIA.mainTab)),
   )
   const [activeSubTab, setActiveSubTab] = useState<SubTab>(
-    initialSubTab ?? DEFAULT_HERO_CRITERIA.subTab,
+    () => initialSubTab ?? firstSubFor(activeMainTab),
   )
 
   const [area, setArea] = useState(initialArea)
@@ -269,8 +283,16 @@ export function HeroSearch({
   const showTitleSegment = activeMainTab === 'buy'
   const bands = activeMainTab === 'rent' ? RENT_BANDS : SALE_BANDS
   const typeOptions = useTypeOptions(activeMainTab, activeSubTab)
-  const subTabs = subTabsFor(activeMainTab, taxonomy.heroSubTabs)
+  const allSubTabs = subTabsFor(activeMainTab, taxonomy.heroSubTabs)
+  const stockedSubTabs = allSubTabs.filter(
+    (t) => inventory.hasSub(activeMainTab, t.id) || (embedded && t.id === initialSubTab),
+  )
+  const subTabs = stockedSubTabs.length ? stockedSubTabs : allSubTabs
   const showSubTabs = activeMainTab !== 'land'
+
+  useEffect(() => {
+    if (!subTabs.some((t) => t.id === activeSubTab)) setActiveSubTab(subTabs[0].id)
+  }, [subTabs, activeSubTab])
 
   const areaDisplay = area || 'Search by area'
   const typeDisplay =
@@ -539,7 +561,9 @@ export function HeroSearch({
                 Icon: LandPlot,
               },
             ] as const
-          ).map(({ id, label, Icon }) => (
+          )
+            .filter(({ id }) => showMain(id))
+            .map(({ id, label, Icon }) => (
             <button
               key={id}
               type="button"
@@ -1118,7 +1142,9 @@ export function HeroSearch({
                         Icon: LandPlot,
                       },
                     ] as const
-                  ).map(({ id, label, Icon }) => {
+                  )
+                    .filter(({ id }) => showMain(id))
+                    .map(({ id, label, Icon }) => {
                     const count = mobileCount({
                       mainTab: id,
                       listingType: '',

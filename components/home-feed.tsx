@@ -116,53 +116,63 @@ export function HomeFeed({
 
   return (
     <div className="pb-4 pt-8 sm:pb-16 sm:pt-10">
-      <ListingCarouselRow
-        title={home.carousels.featured.title}
-        subtitle={home.carousels.featured.subtitle}
-        seeAllHref="/buy/?featured=1"
-        seeAllPreviews={carouselPreviews(featuredFull)}
-      >
-        <HomeCarouselCards items={featured} />
-      </ListingCarouselRow>
+      {featured.length ? (
+        <ListingCarouselRow
+          title={home.carousels.featured.title}
+          subtitle={home.carousels.featured.subtitle}
+          seeAllHref="/buy/?featured=1"
+          seeAllPreviews={carouselPreviews(featuredFull)}
+        >
+          <HomeCarouselCards items={featured} />
+        </ListingCarouselRow>
+      ) : null}
 
-      <ListingCarouselRow
-        title={home.carousels.highDemand.title}
-        subtitle={home.carousels.highDemand.subtitle}
-        seeAllHref="/rent/"
-        seeAllPreviews={carouselPreviews(highDemandFull)}
-      >
-        <HomeCarouselCards items={highDemand} />
-      </ListingCarouselRow>
+      {highDemand.length ? (
+        <ListingCarouselRow
+          title={home.carousels.highDemand.title}
+          subtitle={home.carousels.highDemand.subtitle}
+          seeAllHref="/rent/"
+          seeAllPreviews={carouselPreviews(highDemandFull)}
+        >
+          <HomeCarouselCards items={highDemand} />
+        </ListingCarouselRow>
+      ) : null}
 
-      <ListingCarouselRow
-        title={home.carousels.land.title}
-        subtitle={home.carousels.land.subtitle}
-        seeAllHref="/land/"
-        seeAllPreviews={carouselPreviews(landFull)}
-        deferImages
-      >
-        <HomeCarouselCards items={landForSale} />
-      </ListingCarouselRow>
+      {landForSale.length ? (
+        <ListingCarouselRow
+          title={home.carousels.land.title}
+          subtitle={home.carousels.land.subtitle}
+          seeAllHref="/land/"
+          seeAllPreviews={carouselPreviews(landFull)}
+          deferImages
+        >
+          <HomeCarouselCards items={landForSale} />
+        </ListingCarouselRow>
+      ) : null}
 
-      <ListingCarouselRow
-        title={home.carousels.popularRentals.title}
-        subtitle={home.carousels.popularRentals.subtitle}
-        seeAllHref="/rent/?use=residential"
-        seeAllPreviews={carouselPreviews(popularRentalsFull)}
-        deferImages
-      >
-        <HomeCarouselCards items={popularRentals} />
-      </ListingCarouselRow>
+      {popularRentals.length ? (
+        <ListingCarouselRow
+          title={home.carousels.popularRentals.title}
+          subtitle={home.carousels.popularRentals.subtitle}
+          seeAllHref="/rent/?use=residential"
+          seeAllPreviews={carouselPreviews(popularRentalsFull)}
+          deferImages
+        >
+          <HomeCarouselCards items={popularRentals} />
+        </ListingCarouselRow>
+      ) : null}
 
-      <ListingCarouselRow
-        title={home.carousels.commercial.title}
-        subtitle={home.carousels.commercial.subtitle}
-        seeAllHref="/buy/?use=commercial"
-        seeAllPreviews={carouselPreviews(commercialFull)}
-        deferImages
-      >
-        <HomeCarouselCards items={commercial} />
-      </ListingCarouselRow>
+      {commercial.length ? (
+        <ListingCarouselRow
+          title={home.carousels.commercial.title}
+          subtitle={home.carousels.commercial.subtitle}
+          seeAllHref="/buy/?use=commercial"
+          seeAllPreviews={carouselPreviews(commercialFull)}
+          deferImages
+        >
+          <HomeCarouselCards items={commercial} />
+        </ListingCarouselRow>
+      ) : null}
 
       {exploreAreas.length ? (
         <ListingCarouselRow

@@ -3,6 +3,8 @@ import { headers } from 'next/headers'
 import { Analytics } from '@vercel/analytics/next'
 import { LockHorizontalPagePan } from '@/components/lock-horizontal-page-pan'
 import { SiteCatalogProvider } from '@/components/site-catalog-provider'
+import { getProperties } from '@/lib/properties'
+import { inventoryKeys } from '@/lib/inventory'
 import { OrganizationJsonLd } from '@/components/seo/organization-json-ld'
 import { getCompanyContent, getSiteCatalog } from '@/lib/site-content/queries'
 import { getReviewsPayload } from '@/lib/reviews'
@@ -54,10 +56,13 @@ export default async function RootLayout({
   // Opt into request-time render so middleware nonces can stamp Next scripts (CSP).
   await headers()
 
-  const [catalog, company, reviewsPayload] = await Promise.all([
+  const [catalog, company, reviewsPayload, inventory] = await Promise.all([
     getSiteCatalog(),
     getCompanyContent(),
     getReviewsPayload(),
+    getProperties()
+      .then(inventoryKeys)
+      .catch(() => null),
   ])
   const storageOrigin = supabaseHost()
 
@@ -80,7 +85,9 @@ export default async function RootLayout({
           aggregate={reviewsPayload.aggregate}
         />
         <LockHorizontalPagePan />
-        <SiteCatalogProvider value={catalog}>{children}</SiteCatalogProvider>
+        <SiteCatalogProvider value={catalog} inventory={inventory}>
+          {children}
+        </SiteCatalogProvider>
         <Analytics />
       </body>
     </html>

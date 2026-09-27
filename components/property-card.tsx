@@ -1,11 +1,9 @@
 'use client'
 
-import { useState } from 'react'
 import Image from 'next/image'
 import { cdnLoaderFor } from '@/lib/media'
 import { useImagesVisible } from '@/components/deferred-images'
 import Link from 'next/link'
-import { Heart } from 'lucide-react'
 import {
   formatPriceUgx,
   getCoverImage,
@@ -43,9 +41,6 @@ function CardShell({
   sizeSqm,
   priceUgx,
   priceExtra,
-  isFav,
-  heartPop,
-  onFav,
 }: {
   index: number
   compact: boolean
@@ -66,9 +61,6 @@ function CardShell({
   sizeSqm?: number
   priceUgx: number
   priceExtra?: string | null
-  isFav: boolean
-  heartPop: boolean
-  onFav: (e: React.SyntheticEvent) => void
 }) {
   const showImage = useImagesVisible() || priority
   return (
@@ -185,22 +177,6 @@ function CardShell({
           </p>
         </div>
       </Link>
-
-      <button
-        type="button"
-        aria-label={isFav ? 'Remove from saved' : 'Save listing'}
-        aria-pressed={isFav}
-        onClick={onFav}
-        className="absolute right-2.5 top-2.5 z-10 flex h-9 w-9 items-center justify-center"
-      >
-        <Heart
-          className={`h-[20px] w-[20px] transition-colors ${
-            isFav
-              ? 'fill-heart text-heart stroke-heart'
-              : 'fill-none stroke-[1.75] text-white drop-shadow-[0_1px_3px_rgba(0,0,0,0.65)]'
-          } ${heartPop ? 'animate-heart-pop' : ''}`}
-        />
-      </button>
     </div>
   )
 }
@@ -208,22 +184,17 @@ function CardShell({
 function PropertyCardFromFull({
   item,
   index,
-  isFav,
-  onToggleFav,
   compact,
   priority,
 }: {
   item: Property
   index: number
-  isFav: boolean
-  onToggleFav: (id: string) => void
   compact: boolean
   priority: boolean
 }) {
   const image = getCoverImage(item.images)
   const kindLabel = useListingKindLabel(item)
   const { titleStatus } = useTaxonomy()
-  const [heartPop, setHeartPop] = useState(false)
   const suffix = priceSuffix(item)
 
   return (
@@ -251,17 +222,6 @@ function PropertyCardFromFull({
       sizeSqm={'sizeSqm' in item ? item.sizeSqm : undefined}
       priceUgx={item.priceUgx}
       priceExtra={suffix || (item.listingMode === 'rent' ? '/ month' : null)}
-      isFav={isFav}
-      heartPop={heartPop}
-      onFav={(e) => {
-        e.preventDefault()
-        e.stopPropagation()
-        if (!isFav) {
-          setHeartPop(true)
-          window.setTimeout(() => setHeartPop(false), 160)
-        }
-        onToggleFav(item.id)
-      }}
     />
   )
 }
@@ -269,20 +229,15 @@ function PropertyCardFromFull({
 function PropertyCardFromData({
   item,
   index,
-  isFav,
-  onToggleFav,
   compact,
   priority,
 }: {
   item: PropertyCardData
   index: number
-  isFav: boolean
-  onToggleFav: (id: string) => void
   compact: boolean
   priority: boolean
 }) {
   const { titleStatus } = useTaxonomy()
-  const [heartPop, setHeartPop] = useState(false)
 
   return (
     <CardShell
@@ -309,17 +264,6 @@ function PropertyCardFromData({
       sizeSqm={item.sizeSqm}
       priceUgx={item.priceUgx}
       priceExtra={item.listingMode === 'rent' ? '/ month' : null}
-      isFav={isFav}
-      heartPop={heartPop}
-      onFav={(e) => {
-        e.preventDefault()
-        e.stopPropagation()
-        if (!isFav) {
-          setHeartPop(true)
-          window.setTimeout(() => setHeartPop(false), 160)
-        }
-        onToggleFav(item.id)
-      }}
     />
   )
 }
@@ -327,15 +271,11 @@ function PropertyCardFromData({
 export function PropertyCard({
   item,
   index,
-  isFav,
-  onToggleFav,
   compact = false,
   priority = false,
 }: {
   item: Property | PropertyCardData
   index: number
-  isFav: boolean
-  onToggleFav: (id: string) => void
   compact?: boolean
   priority?: boolean
 }) {
@@ -344,8 +284,6 @@ export function PropertyCard({
       <PropertyCardFromFull
         item={item}
         index={index}
-        isFav={isFav}
-        onToggleFav={onToggleFav}
         compact={compact}
         priority={priority}
       />
@@ -355,8 +293,6 @@ export function PropertyCard({
     <PropertyCardFromData
       item={item}
       index={index}
-      isFav={isFav}
-      onToggleFav={onToggleFav}
       compact={compact}
       priority={priority}
     />

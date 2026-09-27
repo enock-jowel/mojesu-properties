@@ -20,13 +20,13 @@ import { PropertyCard } from '@/components/property-card'
 import { RoofMark } from '@/components/roof-mark'
 import {
   useAreasCatalog,
+  useInventory,
   useTaxonomy,
 } from '@/components/site-catalog-provider'
 import {
   areaTierFrom,
   typeOptionsFromTaxonomy,
 } from '@/lib/site-content/catalog-helpers'
-import { useFavorites } from '@/lib/favorites'
 import { areaGuideHref } from '@/lib/area-links'
 import Link from 'next/link'
 type BrowseMode = 'rent' | 'buy' | 'land'
@@ -109,6 +109,7 @@ export function ListingsBrowse({
   const pathname = usePathname()
   const params = useSearchParams()
   const taxonomy = useTaxonomy()
+  const inventory = useInventory()
   const areas = useAreasCatalog()
 
   const location = params.get('location') || ''
@@ -119,8 +120,6 @@ export function ListingsBrowse({
   const titleStatusParam = params.get('titleStatus')
   const tier = params.get('tier') as AreaTier | null
   const featured = params.get('featured') === '1'
-
-  const { favorites, toggleFav } = useFavorites()
 
   const setParams = (patch: Record<string, string | null>) => {
     const next = new URLSearchParams(params.toString())
@@ -189,6 +188,12 @@ export function ListingsBrowse({
     mode,
     resolveSubTab(use, mode),
     taxonomy,
+  )
+  /** Desktop keeps a stable pill row: every type with any live listing in this mode. */
+  const stockedTypePills = categoryPills.filter(
+    (pill) =>
+      pill.value === type ||
+      inventory.hasType(mode, resolveSubTab(use, mode), pill.value),
   )
   const titleStatuses = titleStatusParam
     ? (titleStatusParam.split(',').filter(Boolean) as TitleStatus[])
@@ -314,7 +319,7 @@ export function ListingsBrowse({
           {renderTypePills(availableTypePills, true)}
         </div>
         <div className="site-container hidden gap-2 overflow-x-auto py-3 md:flex [-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
-          {renderTypePills(categoryPills, false)}
+          {renderTypePills(stockedTypePills, false)}
         </div>
       </div>
 
@@ -373,8 +378,6 @@ export function ListingsBrowse({
                 key={item.id}
                 item={item}
                 index={i}
-                isFav={favorites.has(item.id)}
-                onToggleFav={toggleFav}
               />
             ))}
           </div>

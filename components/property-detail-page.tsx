@@ -17,7 +17,6 @@ import {
   useListingKindLabel,
   useTaxonomy,
 } from '@/components/site-catalog-provider'
-import { useFavorites } from '@/lib/favorites'
 import { areaGuideHref } from '@/lib/area-links'
 const DESC_COLLAPSE_CHARS = 320
 
@@ -32,7 +31,6 @@ export function PropertyDetailPage({
   similar?: Property[]
 }) {
   const [descOpen, setDescOpen] = useState(false)
-  const { favorites, toggleFav } = useFavorites()
   const [viewingOpen, setViewingOpen] = useState(false)
   const kindLabel = useListingKindLabel(item)
   const { titleStatus } = useTaxonomy()
@@ -217,8 +215,6 @@ export function PropertyDetailPage({
                 key={p.id}
                 item={p}
                 index={i}
-                isFav={favorites.has(p.id)}
-                onToggleFav={toggleFav}
               />
             ))}
           </div>

@@ -18,6 +18,7 @@ import type { Property } from '@/lib/properties'
 import type { HeroSubTab } from '@/lib/listing-kinds'
 import type { AmenityKey } from '@/lib/amenities'
 import { AMENITY_CATALOG } from '@/lib/amenities'
+import { inventoryFrom, type Inventory } from '@/lib/inventory'
 
 const SiteCatalogContext = createContext<SiteCatalog>({
   taxonomy: DEFAULT_TAXONOMY,
@@ -27,18 +28,28 @@ const SiteCatalogContext = createContext<SiteCatalog>({
   nav: DEFAULT_NAV,
 })
 
+const InventoryContext = createContext<Inventory>(inventoryFrom(null))
+
 export function SiteCatalogProvider({
   value,
+  inventory = null,
   children,
 }: {
   value: SiteCatalog
+  /** Categories with published listings; null = unknown (show everything). */
+  inventory?: string[] | null
   children: React.ReactNode
 }) {
+  const inv = useMemo(() => inventoryFrom(inventory), [inventory])
   return (
     <SiteCatalogContext.Provider value={value}>
-      {children}
+      <InventoryContext.Provider value={inv}>{children}</InventoryContext.Provider>
     </SiteCatalogContext.Provider>
   )
+}
+
+export function useInventory(): Inventory {
+  return useContext(InventoryContext)
 }
 
 export function useSiteCatalog(): SiteCatalog {
@@ -82,9 +93,13 @@ export function useTypeOptions(
   sub: HeroSubTab,
 ) {
   const taxonomy = useTaxonomy()
+  const inventory = useInventory()
   return useMemo(
-    () => typeOptionsFromTaxonomy(main, sub, taxonomy),
-    [main, sub, taxonomy],
+    () =>
+      typeOptionsFromTaxonomy(main, sub, taxonomy).filter((o) =>
+        inventory.hasType(main, sub, o.value),
+      ),
+    [main, sub, taxonomy, inventory],
   )
 }
 
