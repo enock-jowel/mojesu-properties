@@ -297,8 +297,9 @@ export function ListingsBrowse({
   return (
     <section className="pb-14">
       <HeroSearch
-        key={`${mode}-${use ?? 'all'}-${location}-${type}`}
+        key={mode}
         variant="embedded"
+        syncKey={params.toString()}
         initialMainTab={mode as MainTab}
         initialSubTab={resolveSubTab(use, mode)}
         initialArea={location}
@@ -309,6 +310,8 @@ export function ListingsBrowse({
         }
         initialType={type}
         initialTitleStatuses={titleStatuses}
+        initialPriceMin={priceMin ? Number(priceMin) : undefined}
+        initialPriceMax={priceMax ? Number(priceMax) : undefined}
         properties={properties}
       />
 

@@ -137,6 +137,31 @@ const RENT_BANDS: PriceBand[] = [
   },
 ]
 
+function budgetFromPrices(
+  main: MainTab,
+  min?: number,
+  max?: number,
+): { bandId: string; customRange: boolean; customMin: string; customMax: string } {
+  const none = { bandId: '', customRange: false, customMin: '', customMax: '' }
+  if (!min && !max) return none
+  const band = (main === 'rent' ? RENT_BANDS : SALE_BANDS).find(
+    (b) => (b.minUgx || undefined) === (min || undefined) && (b.maxUgx ?? undefined) === (max || undefined),
+  )
+  if (band) return { ...none, bandId: band.id }
+  return {
+    bandId: '',
+    customRange: true,
+    customMin: min ? String(min) : '',
+    customMax: max ? String(max) : '',
+  }
+}
+
+function sortedQs(qs: string) {
+  const p = new URLSearchParams(qs)
+  p.sort()
+  return p.toString()
+}
+
 function subTabsFor(
   main: MainTab,
   heroSubTabs: TaxonomyContent['heroSubTabs'],
@@ -167,6 +192,9 @@ export function HeroSearch({
   initialAreaTier = '',
   initialType = '',
   initialTitleStatuses = [],
+  initialPriceMin,
+  initialPriceMax,
+  syncKey,
   properties = [],
 }: {
   /** @deprecated Areas now come from AREA_CATALOG; prop kept for call-site compat */
@@ -181,6 +209,10 @@ export function HeroSearch({
   initialAreaTier?: AreaTier | ''
   initialType?: string
   initialTitleStatuses?: TitleStatus[]
+  initialPriceMin?: number
+  initialPriceMax?: number
+  /** Embedded only: current query string; when it changes externally (back/forward, type pills) state re-syncs from the initial* props */
+  syncKey?: string
   /** Published catalog for mobile filter match counts */
   properties?: Property[]
 }) {
@@ -220,10 +252,13 @@ export function HeroSearch({
   const [area, setArea] = useState(initialArea)
   const [areaTier, setAreaTier] = useState<AreaTier | ''>(initialAreaTier)
   const [listingType, setListingType] = useState(initialType)
-  const [bandId, setBandId] = useState('')
-  const [customRange, setCustomRange] = useState(false)
-  const [customMin, setCustomMin] = useState('')
-  const [customMax, setCustomMax] = useState('')
+  const [initialBudget] = useState(() =>
+    budgetFromPrices(activeMainTab, initialPriceMin, initialPriceMax),
+  )
+  const [bandId, setBandId] = useState(initialBudget.bandId)
+  const [customRange, setCustomRange] = useState(initialBudget.customRange)
+  const [customMin, setCustomMin] = useState(initialBudget.customMin)
+  const [customMax, setCustomMax] = useState(initialBudget.customMax)
   const [currency, setCurrency] = useState<Currency>('UGX')
   const [titleStatuses, setTitleStatuses] =
     useState<TitleStatus[]>(initialTitleStatuses)
@@ -276,8 +311,6 @@ export function HeroSearch({
 
   const pillRef = useRef<HTMLDivElement>(null)
   const areaSearchRef = useRef<HTMLInputElement>(null)
-  const skipMainTabReset = useRef(true)
-  const skipSubTabReset = useRef(true)
 
   // Title tenure is a Buy-property filter; Land encodes tenure in Type options
   const showTitleSegment = activeMainTab === 'buy'
@@ -291,7 +324,10 @@ export function HeroSearch({
   const showSubTabs = activeMainTab !== 'land'
 
   useEffect(() => {
-    if (!subTabs.some((t) => t.id === activeSubTab)) setActiveSubTab(subTabs[0].id)
+    if (!subTabs.some((t) => t.id === activeSubTab)) {
+      setActiveSubTab(subTabs[0].id)
+      setListingType('')
+    }
   }, [subTabs, activeSubTab])
 
   const areaDisplay = area || 'Search by area'
@@ -374,12 +410,89 @@ export function HeroSearch({
     bands,
   ])
 
+  /**
+   * Filters auto-apply only on user picks: handlers bump this tick, never effects,
+   * so mount-time corrections (e.g. empty sub tab fallback) can't navigate.
+   */
+  const [applyTick, setApplyTick] = useState({ n: 0, debounce: false })
+  const handledTick = useRef(0)
+  const requestApply = (debounce = false) =>
+    setApplyTick((t) => ({ n: t.n + 1, debounce }))
+  /** Query strings we pushed ourselves — their arrival must not re-sync state. */
+  const selfAppliedQs = useRef(new Set<string>())
+
   useEffect(() => {
-    if (skipMainTabReset.current) {
-      skipMainTabReset.current = false
+    if (applyTick.n === handledTick.current) return
+    const run = () => {
+      handledTick.current = applyTick.n
+      const href = heroCriteriaToHref(criteria)
+      if (!embedded) {
+        setMobileSheetOpen(false)
+        setMobilePanel(null)
+        setOpenSegment(null)
+        router.push(href)
+        return
+      }
+      const [path, qs = ''] = href.split('?')
+      const next = new URLSearchParams(qs)
+      const featured = new URLSearchParams(window.location.search).get('featured')
+      if (featured) next.set('featured', featured)
+      next.sort()
+      const nextQs = next.toString()
+      const samePath =
+        window.location.pathname.replace(/\/$/, '') === path.replace(/\/$/, '')
+      if (samePath && sortedQs(window.location.search) === nextQs) return
+      selfAppliedQs.current.add(nextQs)
+      const url = nextQs ? `${path}?${nextQs}` : path
+      if (samePath) router.replace(url, { scroll: false })
+      else router.push(url)
+    }
+    if (!applyTick.debounce) {
+      run()
       return
     }
-    setActiveSubTab(defaultSubTab())
+    const timer = window.setTimeout(run, 400)
+    return () => window.clearTimeout(timer)
+  }, [applyTick, criteria, embedded, router])
+
+  const lastSyncKey = useRef(syncKey)
+  const initialTitleKey = initialTitleStatuses.join(',')
+  useEffect(() => {
+    if (!embedded || syncKey === undefined || syncKey === lastSyncKey.current) return
+    lastSyncKey.current = syncKey
+    const qs = sortedQs(syncKey)
+    if (selfAppliedQs.current.delete(qs)) return
+    const budget = budgetFromPrices(activeMainTab, initialPriceMin, initialPriceMax)
+    setActiveSubTab(initialSubTab ?? defaultSubTab())
+    setArea(initialArea)
+    setAreaTier(initialAreaTier)
+    setListingType(initialType)
+    setTitleStatuses(
+      initialTitleKey ? (initialTitleKey.split(',') as TitleStatus[]) : [],
+    )
+    setBandId(budget.bandId)
+    setCustomRange(budget.customRange)
+    setCustomMin(budget.customMin)
+    setCustomMax(budget.customMax)
+    if (budget.customRange) setCurrency('UGX')
+  }, [
+    embedded,
+    syncKey,
+    activeMainTab,
+    initialSubTab,
+    initialArea,
+    initialAreaTier,
+    initialType,
+    initialTitleKey,
+    initialPriceMin,
+    initialPriceMax,
+  ])
+
+  function changeMainTab(id: MainTab) {
+    if (id === activeMainTab) return
+    const sub = firstSubFor(id)
+    setActiveMainTab(id)
+    setActiveSubTab(sub)
     setListingType('')
     setBandId('')
     setCustomRange(false)
@@ -388,16 +501,61 @@ export function HeroSearch({
     setTitleStatuses([])
     setAreaQuery('')
     setOpenSegment(null)
-  }, [activeMainTab])
-
-  useEffect(() => {
-    if (skipSubTabReset.current) {
-      skipSubTabReset.current = false
-      return
+    if (embedded) {
+      router.push(
+        heroCriteriaToHref({
+          mainTab: id,
+          subTab: sub,
+          area,
+          areaTier,
+          listingType: '',
+          titleStatuses: [],
+        }),
+      )
     }
+  }
+
+  function changeSubTab(id: SubTab) {
+    if (id === activeSubTab) return
+    setActiveSubTab(id)
     setListingType('')
     setOpenSegment(null)
-  }, [activeSubTab])
+    if (embedded) requestApply()
+  }
+
+  function pickType(value: string) {
+    setListingType(value)
+    setOpenSegment(null)
+    if (mobileSheetOpen) setMobilePanel(null)
+    requestApply()
+  }
+
+  function pickBand(id: string) {
+    setBandId(id)
+    setCustomRange(false)
+    setOpenSegment(null)
+    if (mobileSheetOpen) setMobilePanel(null)
+    requestApply()
+  }
+
+  function startCustomRange() {
+    setCustomRange(true)
+    setBandId('')
+    if (embedded) requestApply()
+  }
+
+  /** Browse pages filter as you type (debounced); the landing hero waits for Enter / Search. */
+  function changeCustom(which: 'min' | 'max', value: string) {
+    if (which === 'min') setCustomMin(value)
+    else setCustomMax(value)
+    if (embedded) requestApply(true)
+  }
+
+  function changeCurrency(c: Currency) {
+    if (c === currency) return
+    setCurrency(c)
+    if (embedded && customRange) requestApply(true)
+  }
 
   useEffect(() => {
     if (openSegment === 'where') {
@@ -431,6 +589,7 @@ export function HeroSearch({
     setAreaQuery('')
     setOpenSegment(null)
     if (mobileSheetOpen) setMobilePanel(null)
+    requestApply()
   }
 
   function openMobileSheet(panel: MobilePanel = 'where') {
@@ -455,12 +614,28 @@ export function HeroSearch({
         ? prev.filter((s) => s !== status)
         : [...prev, status],
     )
+    requestApply()
   }
 
   function submitSearch() {
     closeMobileSheet()
     setOpenSegment(null)
-    router.push(heroCriteriaToHref(criteria))
+    if (embedded) requestApply()
+    else router.push(heroCriteriaToHref(criteria))
+  }
+
+  function clearFilters() {
+    setArea('')
+    setAreaTier('')
+    setListingType('')
+    setBandId('')
+    setCustomRange(false)
+    setCustomMin('')
+    setCustomMax('')
+    setTitleStatuses([])
+    setAreaQuery('')
+    setMobilePanel(null)
+    if (embedded) requestApply()
   }
 
   const intentLabel = taxonomy.heroMainTabs[activeMainTab]
@@ -570,8 +745,8 @@ export function HeroSearch({
               role="tab"
               aria-selected={activeMainTab === id}
               onClick={() => {
-                setActiveMainTab(id)
-                if (isMobileSearchViewport()) openMobileSheet('intent')
+                changeMainTab(id)
+                if (!embedded && isMobileSearchViewport()) openMobileSheet('intent')
               }}
               className={`inline-flex shrink-0 items-center gap-1.5 rounded-full px-3.5 py-1.5 text-sm font-bold transition-colors ${
                 activeMainTab === id
@@ -599,8 +774,8 @@ export function HeroSearch({
                 role="tab"
                 aria-selected={activeSubTab === tab.id}
                 onClick={() => {
-                  setActiveSubTab(tab.id)
-                  if (isMobileSearchViewport()) openMobileSheet('category')
+                  changeSubTab(tab.id)
+                  if (!embedded && isMobileSearchViewport()) openMobileSheet('category')
                 }}
                 className={`inline-flex shrink-0 items-center gap-1 rounded-full px-3 py-1 text-xs font-bold transition-colors sm:text-sm ${
                   activeSubTab === tab.id
@@ -758,10 +933,7 @@ export function HeroSearch({
                     <button
                       type="button"
                       className="flex w-full px-4 py-2.5 text-left text-sm font-medium text-neutral-muted hover:bg-surface-alt"
-                      onClick={() => {
-                        setListingType('')
-                        setOpenSegment(null)
-                      }}
+                      onClick={() => pickType('')}
                     >
                       Any type
                     </button>
@@ -773,10 +945,7 @@ export function HeroSearch({
                         className={`flex w-full px-4 py-2.5 text-left text-sm font-medium hover:bg-surface-alt ${
                           listingType === opt.value ? 'text-primary' : 'text-ink'
                         }`}
-                        onClick={() => {
-                          setListingType(opt.value)
-                          setOpenSegment(null)
-                        }}
+                        onClick={() => pickType(opt.value)}
                       >
                         {opt.label}
                       </button>
@@ -828,7 +997,7 @@ export function HeroSearch({
                           <button
                             key={c}
                             type="button"
-                            onClick={() => setCurrency(c)}
+                            onClick={() => changeCurrency(c)}
                             className={`rounded-full px-2.5 py-1 text-xs font-bold ${
                               currency === c
                                 ? 'bg-primary text-white'
@@ -851,11 +1020,7 @@ export function HeroSearch({
                       <button
                         key={band.id}
                         type="button"
-                        onClick={() => {
-                          setBandId(band.id)
-                          setCustomRange(false)
-                          setOpenSegment(null)
-                        }}
+                        onClick={() => pickBand(band.id)}
                         className={`rounded-xl px-3 py-2 text-left text-sm font-semibold transition-colors ${
                           bandId === band.id && !customRange
                             ? 'bg-primary/15 text-ink'
@@ -867,10 +1032,7 @@ export function HeroSearch({
                     ))}
                     <button
                       type="button"
-                      onClick={() => {
-                        setCustomRange(true)
-                        setBandId('')
-                      }}
+                      onClick={startCustomRange}
                       className={`rounded-xl px-3 py-2 text-left text-sm font-semibold ${
                         customRange
                           ? 'bg-primary/15 text-ink'
@@ -886,7 +1048,7 @@ export function HeroSearch({
                           inputMode="numeric"
                           placeholder={`Min ${currency}`}
                           value={customMin}
-                          onChange={(e) => setCustomMin(e.target.value)}
+                          onChange={(e) => changeCustom('min', e.target.value)}
                           className="rounded-xl border border-neutral-light bg-surface-alt px-3 py-2 text-sm outline-none focus:border-primary"
                         />
                         <input
@@ -894,7 +1056,7 @@ export function HeroSearch({
                           inputMode="numeric"
                           placeholder={`Max ${currency}`}
                           value={customMax}
-                          onChange={(e) => setCustomMax(e.target.value)}
+                          onChange={(e) => changeCustom('max', e.target.value)}
                           className="rounded-xl border border-neutral-light bg-surface-alt px-3 py-2 text-sm outline-none focus:border-primary"
                         />
                       </div>
@@ -1156,7 +1318,7 @@ export function HeroSearch({
                         key={id}
                         type="button"
                         onClick={() => {
-                          setActiveMainTab(id)
+                          changeMainTab(id)
                           setMobilePanel(null)
                         }}
                         className={`flex h-7 items-center gap-1.5 rounded-lg border px-2.5 text-left text-[12px] font-semibold ${
@@ -1191,7 +1353,7 @@ export function HeroSearch({
                         key={tab.id}
                         type="button"
                         onClick={() => {
-                          setActiveSubTab(tab.id)
+                          changeSubTab(tab.id)
                           setMobilePanel(null)
                         }}
                         className={`flex h-7 items-center gap-1.5 rounded-lg border px-2.5 text-left text-[12px] font-semibold ${
@@ -1288,10 +1450,7 @@ export function HeroSearch({
                 <div className="flex flex-col gap-0.5">
                   <button
                     type="button"
-                    onClick={() => {
-                      setListingType('')
-                      setMobilePanel(null)
-                    }}
+                    onClick={() => pickType('')}
                     className={`flex h-7 items-center gap-1.5 rounded-lg border px-2.5 text-left text-[12px] font-semibold ${
                       !listingType
                         ? 'border-primary bg-primary/12 text-ink'
@@ -1307,10 +1466,7 @@ export function HeroSearch({
                     <button
                       key={o.value}
                       type="button"
-                      onClick={() => {
-                        setListingType(o.value)
-                        setMobilePanel(null)
-                      }}
+                      onClick={() => pickType(o.value)}
                       className={`flex h-7 items-center gap-1.5 rounded-lg border px-2.5 text-left text-[12px] font-semibold ${
                         listingType === o.value
                           ? 'border-primary bg-primary/12 text-ink'
@@ -1333,7 +1489,7 @@ export function HeroSearch({
                       <button
                         key={c}
                         type="button"
-                        onClick={() => setCurrency(c)}
+                        onClick={() => changeCurrency(c)}
                         className={`rounded-full px-2.5 py-1 text-[11px] font-bold ${
                           currency === c
                             ? 'bg-primary text-white'
@@ -1353,11 +1509,7 @@ export function HeroSearch({
                       <button
                         key={band.id}
                         type="button"
-                        onClick={() => {
-                          setBandId(band.id)
-                          setCustomRange(false)
-                          setMobilePanel(null)
-                        }}
+                        onClick={() => pickBand(band.id)}
                         className={`flex h-7 items-center gap-1.5 rounded-lg border px-2.5 text-left text-[12px] font-semibold ${
                           bandId === band.id && !customRange
                             ? 'border-primary bg-primary/12 text-ink'
@@ -1375,10 +1527,7 @@ export function HeroSearch({
                   })}
                   <button
                     type="button"
-                    onClick={() => {
-                      setCustomRange(true)
-                      setBandId('')
-                    }}
+                    onClick={startCustomRange}
                     className={`flex h-7 items-center rounded-lg border border-dashed px-2.5 text-left text-[12px] font-semibold ${
                       customRange
                         ? 'border-primary bg-primary/12 text-ink'
@@ -1394,7 +1543,7 @@ export function HeroSearch({
                         inputMode="numeric"
                         placeholder={`Min ${currency}`}
                         value={customMin}
-                        onChange={(e) => setCustomMin(e.target.value)}
+                        onChange={(e) => changeCustom('min', e.target.value)}
                         className="h-7 rounded-lg border border-neutral-light bg-surface-alt px-2 text-[12px] outline-none focus:border-primary"
                       />
                       <input
@@ -1402,7 +1551,7 @@ export function HeroSearch({
                         inputMode="numeric"
                         placeholder={`Max ${currency}`}
                         value={customMax}
-                        onChange={(e) => setCustomMax(e.target.value)}
+                        onChange={(e) => changeCustom('max', e.target.value)}
                         className="h-7 rounded-lg border border-neutral-light bg-surface-alt px-2 text-[12px] outline-none focus:border-primary"
                       />
                     </div>
@@ -1443,24 +1592,13 @@ export function HeroSearch({
               <div className="flex items-center justify-between gap-2">
                 <button
                   type="button"
-                  onClick={() => {
-                    setArea('')
-                    setAreaTier('')
-                    setListingType('')
-                    setBandId('')
-                    setCustomRange(false)
-                    setCustomMin('')
-                    setCustomMax('')
-                    setTitleStatuses([])
-                    setAreaQuery('')
-                    setMobilePanel(null)
-                  }}
+                  onClick={clearFilters}
                   className="text-xs font-bold text-neutral-muted"
                 >
                   Clear
                 </button>
                 <ArrowPillButton type="button" onClick={submitSearch} size="sm">
-                  Search
+                  {embedded ? 'Show results' : 'Search'}
                   {mobileCatalog.length > 0 ? ` · ${mobileMatchTotal}` : ''}
                 </ArrowPillButton>
               </div>
