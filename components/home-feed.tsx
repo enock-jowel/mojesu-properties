@@ -21,6 +21,26 @@ import { ServicesGrid } from '@/components/services-grid'
 import { ReviewsSection } from '@/components/reviews-section'
 import { AgentsSection } from '@/components/agents-section'
 import { BlogSection } from '@/components/blog-section'
+import { HomeAreaCards, type HomeAreaCard } from '@/components/home-area-cards'
+import { areaStats, countLabel } from '@/components/area-guides'
+import { AREA_GUIDES } from '@/lib/area-guides'
+import { AREA_TIER_LABEL } from '@/lib/areas'
+
+/** Areas with the most live listings first — the row only shows areas we can back with stock. */
+function exploreAreaCards(properties: Property[]): HomeAreaCard[] {
+  return AREA_GUIDES.map((guide) => ({ guide, stats: areaStats(properties, guide.name) }))
+    .filter(({ stats }) => stats.items.length > 0)
+    .sort((a, b) => b.stats.items.length - a.stats.items.length)
+    .slice(0, 8)
+    .map(({ guide, stats }) => ({
+      slug: guide.slug,
+      name: guide.name,
+      tierLabel: AREA_TIER_LABEL[guide.tier],
+      coverUrl: stats.cover?.src ?? null,
+      count: stats.items.length,
+      countLabel: countLabel(stats),
+    }))
+}
 
 function carouselPreviews(items: Property[]) {
   return items.slice(0, 3).map((item) => {
@@ -92,6 +112,7 @@ export function HomeFeed({
   const landForSale = toCards(landFull, taxonomy)
   const popularRentals = toCards(popularRentalsFull, taxonomy)
   const commercial = toCards(commercialFull, taxonomy)
+  const exploreAreas = exploreAreaCards(properties)
 
   return (
     <div className="pb-4 pt-8 sm:pb-16 sm:pt-10">
@@ -142,6 +163,22 @@ export function HomeFeed({
       >
         <HomeCarouselCards items={commercial} />
       </ListingCarouselRow>
+
+      {exploreAreas.length ? (
+        <ListingCarouselRow
+          title={home.carousels.exploreAreas.title}
+          subtitle={home.carousels.exploreAreas.subtitle}
+          seeAllHref="/areas/"
+          seeAllLabel="All areas"
+          seeAllPreviews={exploreAreas
+            .filter((a) => a.coverUrl)
+            .slice(0, 3)
+            .map((a) => ({ url: a.coverUrl!, alt: a.name, title: a.name }))}
+          deferImages
+        >
+          <HomeAreaCards items={exploreAreas} />
+        </ListingCarouselRow>
+      ) : null}
 
       <ServicesGrid services={services} intro={home.sections.services} />
       <ReviewsSection
