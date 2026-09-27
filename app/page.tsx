@@ -51,6 +51,7 @@ export default async function Page() {
   return (
     <main className="min-h-screen bg-background">
       <SiteHeader />
+      <h1 className="sr-only">Houses, apartments and land for rent and sale in Kampala</h1>
       <HeroSearch
         backgroundSrc={heroSrc}
         backgroundAlt="Residential property in Kampala, Uganda"

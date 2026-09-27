@@ -12,9 +12,9 @@ import { responsiveImg } from '@/lib/media'
 export const revalidate = 60
 
 export const metadata: Metadata = {
-  title: 'Insights',
+  title: 'Kampala Property Guides & Insights',
   description:
-    'Market trends, buying strategies, and neighborhood guides for Kampala real estate.',
+    'Kampala property guides for renters, buyers and landlords: rental yields, Kibanja vs freehold titles, and neighbourhood notes before you commit.',
   alternates: { canonical: '/insights/' },
 }
 

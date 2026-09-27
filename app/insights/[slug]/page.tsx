@@ -27,7 +27,8 @@ export async function generateMetadata({
   if (!post) return { title: 'Insight' }
 
   return {
-    title: post.title,
+    // Long headlines skip the " — Mojesu" suffix so Google shows them whole.
+    title: post.title.length > 51 ? { absolute: post.title } : post.title,
     description: post.description,
     alternates: { canonical: `/insights/${post.slug}/` },
     openGraph: {
@@ -35,6 +36,7 @@ export async function generateMetadata({
       description: post.description,
       type: 'article',
       publishedTime: post.publishedAt,
+      modifiedTime: post.updatedAt,
       images: post.coverImage ? [{ url: post.coverImage }] : undefined,
     },
   }

@@ -21,6 +21,7 @@ export function insightRowToPost(row: InsightPostRow): BlogPost {
     category: row.category,
     readTimeMinutes: row.read_time_minutes,
     publishedAt: row.published_at || row.created_at.slice(0, 10),
+    updatedAt: row.updated_at || undefined,
     content: Array.isArray(row.content) ? row.content : [],
   }
 }

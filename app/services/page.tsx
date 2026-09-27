@@ -9,9 +9,9 @@ import { sizedImageSrcSet, sizedImageUrl } from '@/lib/media'
 export const revalidate = 60
 
 export const metadata: Metadata = {
-  title: 'Services',
+  title: 'Real Estate Services in Kampala',
   description:
-    'Property management, valuation, surveying, agent-assisted search, development consulting, and facilities management across Kampala.',
+    'Property management, valuation, land surveying, agent-assisted search, development consulting and facilities management across Kampala.',
   alternates: { canonical: '/services/' },
 }
 
