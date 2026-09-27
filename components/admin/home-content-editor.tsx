@@ -68,6 +68,7 @@ export function HomeContentEditor({ initial }: { initial: HomeContent }) {
     ['land', 'Land for sale'] as const,
     ['popularRentals', 'Popular rentals'] as const,
     ['commercial', 'Commercial'] as const,
+    ['exploreAreas', 'Explore by area'] as const,
   ]
 
   return (

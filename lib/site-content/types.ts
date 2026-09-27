@@ -124,6 +124,7 @@ export type HomeContent = {
     land: CarouselRowCopy
     popularRentals: CarouselRowCopy
     commercial: CarouselRowCopy
+    exploreAreas: CarouselRowCopy
   }
   sections: {
     services: SectionIntro

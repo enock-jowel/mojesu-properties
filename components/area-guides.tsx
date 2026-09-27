@@ -49,7 +49,7 @@ export function areaStats(properties: Property[], areaName: string): AreaStats {
   }
 }
 
-function countLabel(stats: AreaStats): string {
+export function countLabel(stats: AreaStats): string {
   const parts = [
     stats.rent ? `${stats.rent} to rent` : '',
     stats.sale ? `${stats.sale} for sale` : '',

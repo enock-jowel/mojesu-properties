@@ -121,6 +121,10 @@ export const DEFAULT_HOME: HomeContent = {
       title: 'Commercial spaces',
       subtitle: 'Offices, retail and warehouses — rent or buy',
     },
+    exploreAreas: {
+      title: 'Explore by area',
+      subtitle: 'Neighbourhood guides with the homes and plots we have there now',
+    },
   },
   sections: {
     services: {
