@@ -27,6 +27,8 @@ import {
   typeOptionsFromTaxonomy,
 } from '@/lib/site-content/catalog-helpers'
 import { useFavorites } from '@/lib/favorites'
+import { areaGuideHref } from '@/lib/area-links'
+import Link from 'next/link'
 type BrowseMode = 'rent' | 'buy' | 'land'
 
 const TITLES: Record<BrowseMode, string> = {
@@ -325,6 +327,17 @@ export function ListingsBrowse({
           {filtered.length} result{filtered.length === 1 ? '' : 's'}
           {location ? ` in ${location}` : ' across Kampala'}
           {tier ? ` · ${areas.tierLabels[tier] || tier}` : ''}
+          {location && areaGuideHref(location) ? (
+            <>
+              {' · '}
+              <Link
+                href={areaGuideHref(location)!}
+                className="font-semibold text-primary-dark underline-offset-2 hover:underline"
+              >
+                {location} guide
+              </Link>
+            </>
+          ) : null}
         </p>
         {tier || location ? (
           <p className="mt-3 max-w-2xl text-[14px] leading-relaxed text-neutral-muted sm:text-[15px]">

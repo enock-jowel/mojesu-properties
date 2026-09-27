@@ -97,16 +97,24 @@ export async function getFormsContent(): Promise<FormsContent> {
 }
 
 export async function getNavContent(): Promise<NavContent> {
-  return stripAreasNavLinks(await fetchKey('nav'))
+  return ensureAreasNavLinks(await fetchKey('nav'))
 }
 
-/** Area guide pages were removed; CMS nav saved earlier may still link to them. */
-function stripAreasNavLinks(nav: NavContent): NavContent {
-  const keep = (l: { href: string }) => !l.href.startsWith('/areas')
+/** Keep Areas in header/footer even if the CMS nav was saved without it. */
+function ensureAreasNavLinks(nav: NavContent): NavContent {
+  const hasAreas = (links: { href: string }[]) => links.some((l) => l.href.startsWith('/areas'))
+  const areasLink = { label: 'Areas', href: '/areas/' }
+  const insertAfterBuy = (links: { label: string; href: string }[]) => {
+    if (hasAreas(links)) return links
+    const next = [...links]
+    const buyIdx = next.findIndex((l) => l.href.startsWith('/buy'))
+    next.splice(buyIdx >= 0 ? buyIdx + 1 : next.length, 0, areasLink)
+    return next
+  }
   return {
     ...nav,
-    header: nav.header.filter(keep),
-    footerMenu: nav.footerMenu.filter(keep),
+    header: insertAfterBuy(nav.header),
+    footerMenu: insertAfterBuy(nav.footerMenu),
   }
 }
 

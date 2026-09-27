@@ -43,6 +43,8 @@ land buyers. One focused batch per week, shipped on a branch, approved by a huma
 
 ## Standing guardrails
 
-- Area landing pages were intentionally removed. Do not recreate them without explicit approval.
+- Area guides live at `/areas/<slug>/` (copy in `lib/area-guides.ts`, listings pulled live). Adding a guide
+  means adding it there **and** its slug in `lib/area-links.ts`. Distances, drive times and "most
+  affordable"-type claims in guide copy need human verification before they change.
 - Browse filters (`?location=`) canonicalise to their parent — never put them in the sitemap.
 - Keep structured data truthful: no `aggregateRating` unless it comes from real reviews.

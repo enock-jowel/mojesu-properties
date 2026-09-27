@@ -14,8 +14,9 @@ render as normal site links; the brackets never show to readers.
    never `click here`.
 3. Link the **first** natural mention only; max ~1 link per 80 words.
 4. Browse URLs with `?location=` are for readers (they canonicalise to the
-   parent page). Ranking value flows through **listing pages, services and
-   insights** — prefer those when an equally good target exists.
+   parent page). Ranking value flows through **area guides (`/areas/<slug>/`),
+   listing pages, services and insights** — for a neighbourhood mention, link
+   the area guide first.
 5. `location` values are exact and case-sensitive: `Kira`, `Outer%20Kira`.
 
 ## Hub pages (always valid targets)
@@ -27,6 +28,7 @@ render as normal site links; the brackets never show to readers.
 | Land for sale | `/land/` |
 | Commercial to rent | `/rent/?use=commercial` |
 | Commercial for sale | `/buy/?use=commercial` |
+| Neighbourhood guides | `/areas/` (each area: `/areas/kira/`, `/areas/outer-kira/` …) |
 | All services | `/services/` |
 | All guides | `/insights/` |
 
@@ -58,9 +60,9 @@ Nothing below changes a claim — it only turns existing words into links.
 ### `kampala-rental-yields-mid-2026` — currently 0 links
 
 - "Ntinda, Kira, And Najjera At A Glance" paragraph:
-  - `[Ntinda](/rent/?location=Ntinda) remains liquid for 2–3 bedroom apartments…`
-  - `[Kira](/rent/?location=Kira) offers more house-style stock…`
-  - `[Najjera](/rent/?location=Najjera) continues to draw families…`
+  - `[Ntinda](/areas/ntinda/) remains liquid for 2–3 bedroom apartments…`
+  - `[Kira](/areas/kira/) offers more house-style stock…`
+  - `[Najjera](/areas/najjera/) continues to draw families…`
 - "Account For Real Operating Costs" paragraph — append:
   `If you would rather not run this yourself, see [property management in Kampala](/services/property-management/).`
 - "Start With Comparable Leases" paragraph — append:
@@ -76,6 +78,7 @@ Nothing below changes a claim — it only turns existing words into links.
 
 ### `naalya-area-guide-families` — currently 0 links
 
+- Lead: `[Naalya](/areas/naalya/) keeps earning a place on family shortlists…`
 - "How To Use Viewings" paragraph:
   `Book two or three [homes in Naalya](/rent/?location=Naalya) in one corridor on the same day.`
 - "What Families Optimise For" list item 3:
@@ -83,9 +86,19 @@ Nothing below changes a claim — it only turns existing words into links.
 - "Final Thoughts" — append:
   `Short on time? An [agent-assisted search](/services/agent-search/) can shortlist and book viewings for you.`
 
+## Built-in links to area guides
+
+- Every listing page shows "{Area} guide" next to the location (when a guide exists).
+- Browse results filtered by location show "{Area} guide".
+- Listing BreadcrumbList schema: Home › Rent/Buy › **Area guide** › Listing.
+- Header (desktop ≥1024px, mobile menu) and footer link to `/areas/`.
+
 ## Reverse links (pages that should point *to* insights)
 
 These need a small UI slot (not built yet — ask before adding):
+
+- Kira / Ntinda / Najjera area guides → rental-yields insight
+- Naalya area guide → Naalya insight
 
 - `/services/property-management/` → rental-yields insight
 - `/services/surveying/` → Kibanja vs freehold insight

@@ -1,3 +1,4 @@
+import { areaGuideHref } from '@/lib/area-links'
 import {
   formatPriceUgx,
   getCoverImage,
@@ -96,7 +97,9 @@ export function ListingJsonLd({ item }: { item: Property }) {
         '@type': 'ListItem',
         position: 3,
         name: item.area,
-        item: `${browse}?location=${encodeURIComponent(item.area)}`,
+        item: areaGuideHref(item.area)
+          ? `${origin}${areaGuideHref(item.area)}`
+          : `${browse}?location=${encodeURIComponent(item.area)}`,
       },
       {
         '@type': 'ListItem',

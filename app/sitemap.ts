@@ -2,6 +2,8 @@ import type { MetadataRoute } from 'next'
 import { getProperties } from '@/lib/properties'
 import { getAllServices } from '@/lib/services'
 import { getAllBlogPosts } from '@/lib/blog'
+import { AREA_GUIDES } from '@/lib/area-guides'
+
 function siteOrigin(): string {
   return (
     process.env.NEXT_PUBLIC_SITE_URL?.replace(/\/$/, '') ||
@@ -22,6 +24,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     { url: `${origin}/rent/`, changeFrequency: 'daily', priority: 0.9 },
     { url: `${origin}/buy/`, changeFrequency: 'daily', priority: 0.9 },
     { url: `${origin}/land/`, changeFrequency: 'daily', priority: 0.9 },
+    { url: `${origin}/areas/`, changeFrequency: 'weekly', priority: 0.8 },
     { url: `${origin}/services/`, changeFrequency: 'weekly', priority: 0.7 },
     { url: `${origin}/insights/`, changeFrequency: 'weekly', priority: 0.7 },
     { url: `${origin}/about/`, changeFrequency: 'monthly', priority: 0.6 },
@@ -38,6 +41,12 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     priority: 0.8,
   }))
 
+  const areaRoutes: MetadataRoute.Sitemap = AREA_GUIDES.map((g) => ({
+    url: `${origin}/areas/${g.slug}/`,
+    changeFrequency: 'weekly',
+    priority: 0.7,
+  }))
+
   const serviceRoutes: MetadataRoute.Sitemap = services.map((s) => ({
     url: `${origin}/services/${s.slug}/`,
     changeFrequency: 'monthly',
@@ -52,6 +61,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
 
   return [
     ...staticRoutes,
+    ...areaRoutes,
     ...listingRoutes,
     ...serviceRoutes,
     ...insightRoutes,

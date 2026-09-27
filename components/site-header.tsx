@@ -30,7 +30,10 @@ export function SiteHeader() {
             <a
               key={`${item.label}-${item.href}`}
               href={item.href}
-              className="text-[15px] font-semibold text-neutral-muted transition-colors hover:text-ink"
+              // Tablet width only fits five links beside the logo and CTA.
+              className={`text-[15px] font-semibold text-neutral-muted transition-colors hover:text-ink ${
+                item.href.startsWith('/areas') ? 'md:hidden lg:inline' : ''
+              }`}
             >
               {item.label}
             </a>
