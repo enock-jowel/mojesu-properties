@@ -16,6 +16,8 @@ export type BlogContentBlock =
   | { type: 'p'; text: string }
   | { type: 'h2'; text: string }
   | { type: 'list'; intro?: string; items: string[]; outro?: string }
+  /** Rendered as an FAQ section and emitted as FAQPage JSON-LD. */
+  | { type: 'faq'; items: { q: string; a: string }[] }
 
 export interface BlogPost {
   id: string
@@ -28,6 +30,8 @@ export interface BlogPost {
   category: BlogCategory
   readTimeMinutes: number
   publishedAt: string
+  /** ISO timestamp of the last CMS edit — Article `dateModified`. */
+  updatedAt?: string
   slug: string
   content: BlogContentBlock[]
 }

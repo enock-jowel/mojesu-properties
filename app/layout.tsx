@@ -16,7 +16,7 @@ const siteUrl =
 export const metadata: Metadata = {
   metadataBase: new URL(siteUrl),
   title: {
-    default: 'Mojesu — Rent or buy your next home in Kampala',
+    default: 'Houses & Land for Rent and Sale in Kampala — Mojesu',
     template: '%s — Mojesu',
   },
   description:

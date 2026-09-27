@@ -7,6 +7,7 @@ import {
 import { BlogCard } from '@/components/blog-section'
 import { CarouselSeeMoreCard } from '@/components/carousel-see-more-card'
 import { responsiveImg } from '@/lib/media'
+import { InlineLinks } from '@/components/inline-links'
 
 function formatDate(iso: string): string {
   return new Date(iso).toLocaleDateString('en-US', {
@@ -43,7 +44,7 @@ function ArticleBody({ blocks }: { blocks: BlogContentBlock[] }) {
                 Direct answer
               </p>
               <p className="mt-2 text-base font-semibold leading-relaxed text-ink sm:text-lg">
-                {block.text}
+                <InlineLinks text={block.text} />
               </p>
             </div>
           )
@@ -65,20 +66,49 @@ function ArticleBody({ blocks }: { blocks: BlogContentBlock[] }) {
             <div key={i} className="mb-3 space-y-2.5 sm:mb-4">
               {block.intro ? (
                 <p className="text-[15px] leading-relaxed text-ink sm:text-[15.5px]">
-                  {block.intro}
+                  <InlineLinks text={block.intro} />
                 </p>
               ) : null}
               <ul className="list-disc space-y-1.5 pl-5 text-[15px] leading-relaxed text-ink sm:text-[15.5px]">
                 {block.items.map((item) => (
-                  <li key={item}>{item}</li>
+                  <li key={item}>
+                    <InlineLinks text={item} />
+                  </li>
                 ))}
               </ul>
               {block.outro ? (
                 <p className="text-[15px] leading-relaxed text-ink sm:text-[15.5px]">
-                  {block.outro}
+                  <InlineLinks text={block.outro} />
                 </p>
               ) : null}
             </div>
+          )
+        }
+
+        if (block.type === 'faq') {
+          const items = block.items.filter((f) => f.q.trim() && f.a.trim())
+          if (!items.length) return null
+          return (
+            <section key={i} className="mt-5 sm:mt-7" aria-labelledby={`faq-${i}`}>
+              <h2
+                id={`faq-${i}`}
+                className="mb-2.5 text-lg font-extrabold tracking-tight text-ink sm:mb-3 sm:text-xl"
+              >
+                Frequently asked questions
+              </h2>
+              <div className="flex flex-col gap-4">
+                {items.map((f) => (
+                  <div key={f.q}>
+                    <h3 className="text-[15.5px] font-bold leading-snug text-ink sm:text-base">
+                      {f.q}
+                    </h3>
+                    <p className="mt-1 text-[15px] leading-relaxed text-neutral-muted sm:text-[15.5px]">
+                      <InlineLinks text={f.a} />
+                    </p>
+                  </div>
+                ))}
+              </div>
+            </section>
           )
         }
 
@@ -87,7 +117,7 @@ function ArticleBody({ blocks }: { blocks: BlogContentBlock[] }) {
             key={i}
             className="mb-3 text-[15px] leading-relaxed text-ink sm:mb-3.5 sm:text-[15.5px]"
           >
-            {block.text}
+            <InlineLinks text={block.text} />
           </p>
         )
       })}

@@ -1,0 +1,8 @@
+date,branch,url,change,target_query,baseline_position,baseline_clicks_28d,check_14d,check_28d,notes
+2026-09-28,seo/week-2026-09-28,/,"Default title → ""Houses & Land for Rent and Sale in Kampala""; sr-only H1",houses for rent in kampala,,,,,baseline from GSC on approval day
+2026-09-28,seo/week-2026-09-28,/listings/*,"Titles: N-Bedroom Type for Rent/Sale in Area, Kampala; fact-based descriptions ≤155",<n> bedroom apartment for rent <area>,,,,,watch per-listing impressions
+2026-09-28,seo/week-2026-09-28,/services/*,"Titles with ""in Kampala""; descriptions ≤155; Service + BreadcrumbList schema",property management kampala,,,,,also valuation / land surveying kampala
+2026-09-28,seo/week-2026-09-28,/services/,"Title → Real Estate Services in Kampala",real estate services kampala,,,,,
+2026-09-28,seo/week-2026-09-28,/insights/,"Title → Kampala Property Guides & Insights; accurate description",kampala property guide,,,,,
+2026-09-28,seo/week-2026-09-28,/insights/*,"Article @graph with BreadcrumbList + FAQPage; dateModified; inline links + FAQ block in CMS",kibanja vs freehold,,,,,needs CMS link edits from internal-link-map.md
+2026-09-28,seo/week-2026-09-28,/areas/ + /areas/*,"Area guides rebuilt in site design: live listings, counts and price ranges from our listings, CollectionPage + ItemList + BreadcrumbList + FAQPage schema; linked from listings, browse, header, footer, sitemap",houses for rent in kira,,,,,also: <area> kampala / land for sale <area>

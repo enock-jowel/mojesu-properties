@@ -18,6 +18,7 @@ import {
   useTaxonomy,
 } from '@/components/site-catalog-provider'
 import { useFavorites } from '@/lib/favorites'
+import { areaGuideHref } from '@/lib/area-links'
 const DESC_COLLAPSE_CHARS = 320
 
 /**
@@ -48,6 +49,8 @@ export function PropertyDetailPage({
       : item.category === 'land'
         ? '/land/'
         : '/buy/'
+  const areaGuide = areaGuideHref(item.area)
+
   return (
     <article className="site-container pb-28 pt-5 sm:pt-12 lg:pb-12">
       <p className="mb-3 text-sm text-neutral-muted sm:mb-5">
@@ -98,6 +101,17 @@ export function PropertyDetailPage({
           </h1>
           <p className="mt-1 text-sm text-neutral-muted sm:mt-2 sm:text-[15px]">
             {kindLabel} · {item.area}, {item.city}
+            {areaGuide ? (
+              <>
+                {' · '}
+                <Link
+                  href={areaGuide}
+                  className="font-semibold text-primary-dark underline-offset-2 hover:underline"
+                >
+                  {item.area} guide
+                </Link>
+              </>
+            ) : null}
           </p>
           {item.updatedAt ? (
             <p className="mt-1 text-[12px] text-neutral-muted/80">

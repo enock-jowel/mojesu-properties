@@ -67,6 +67,9 @@ function newBlock(type: BlogContentBlock['type']): BlogContentBlock {
   if (type === 'list') {
     return { type: 'list', intro: '', items: [''], outro: '' }
   }
+  if (type === 'faq') {
+    return { type: 'faq', items: [{ q: '', a: '' }] }
+  }
   return { type, text: '' }
 }
 
@@ -301,7 +304,7 @@ export function InsightEditor({ initial }: { initial?: InsightPostRow }) {
         {step === 'body' ? (
           <div className="flex flex-col gap-4">
             <div className="flex flex-wrap gap-2">
-              {(['lead', 'p', 'h2', 'list'] as const).map((type) => (
+              {(['lead', 'p', 'h2', 'list', 'faq'] as const).map((type) => (
                 <button
                   key={type}
                   type="button"
@@ -317,6 +320,12 @@ export function InsightEditor({ initial }: { initial?: InsightPostRow }) {
                 </button>
               ))}
             </div>
+            <p className="text-xs text-neutral-muted">
+              Link to listings, filters or services with{' '}
+              <code className="rounded bg-surface-alt px-1">[link text](/rent/?location=Kira)</code>
+              . Start with a <strong>lead</strong> block (the direct answer) and end
+              with an <strong>faq</strong> block.
+            </p>
             <ul className="flex flex-col gap-3">
               {form.content.map((block, i) => (
                 <li
@@ -389,6 +398,66 @@ export function InsightEditor({ initial }: { initial?: InsightPostRow }) {
                           }
                         />
                       </div>
+                    </div>
+                  ) : block.type === 'faq' ? (
+                    <div className="flex flex-col gap-3">
+                      {block.items.map((item, qi) => (
+                        <div key={qi} className="flex flex-col gap-1.5">
+                          <div className="flex items-center justify-between">
+                            <Label>Question {qi + 1}</Label>
+                            <button
+                              type="button"
+                              onClick={() =>
+                                updateBlock(i, {
+                                  ...block,
+                                  items: block.items.filter((_, k) => k !== qi),
+                                })
+                              }
+                              className="rounded px-1.5 text-[10px] font-bold text-secondary"
+                            >
+                              Remove
+                            </button>
+                          </div>
+                          <input
+                            className={fieldClass}
+                            value={item.q}
+                            placeholder="e.g. How much is a 50x100 plot in Kira?"
+                            onChange={(e) =>
+                              updateBlock(i, {
+                                ...block,
+                                items: block.items.map((x, k) =>
+                                  k === qi ? { ...x, q: e.target.value } : x,
+                                ),
+                              })
+                            }
+                          />
+                          <textarea
+                            className={`${fieldClass} min-h-[70px]`}
+                            value={item.a}
+                            placeholder="Short, direct answer (2–3 sentences)."
+                            onChange={(e) =>
+                              updateBlock(i, {
+                                ...block,
+                                items: block.items.map((x, k) =>
+                                  k === qi ? { ...x, a: e.target.value } : x,
+                                ),
+                              })
+                            }
+                          />
+                        </div>
+                      ))}
+                      <button
+                        type="button"
+                        onClick={() =>
+                          updateBlock(i, {
+                            ...block,
+                            items: [...block.items, { q: '', a: '' }],
+                          })
+                        }
+                        className="self-start rounded-full bg-surface-alt px-3 py-1 text-xs font-semibold text-neutral-muted hover:bg-pill-soft hover:text-ink"
+                      >
+                        + question
+                      </button>
                     </div>
                   ) : (
                     <textarea
