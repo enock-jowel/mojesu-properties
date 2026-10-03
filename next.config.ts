@@ -53,6 +53,28 @@ const nextConfig: NextConfig = {
     ],
   },
   trailingSlash: true,
+  async redirects() {
+    return [
+      {
+        source: '/',
+        has: [{ type: 'host', value: 'www.mojesuproperties.com' }],
+        destination: 'https://mojesuproperties.com/',
+        permanent: true,
+      },
+      {
+        source: '/:file(.+\\.[a-zA-Z0-9]+)',
+        has: [{ type: 'host', value: 'www.mojesuproperties.com' }],
+        destination: 'https://mojesuproperties.com/:file',
+        permanent: true,
+      },
+      {
+        source: '/:path+',
+        has: [{ type: 'host', value: 'www.mojesuproperties.com' }],
+        destination: 'https://mojesuproperties.com/:path+/',
+        permanent: true,
+      },
+    ]
+  },
   async headers() {
     return [
       {

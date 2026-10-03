@@ -7,6 +7,7 @@ import { AreaGuideJsonLd } from '@/components/seo/area-json-ld'
 import { AREA_GUIDES, getAreaGuideBySlug } from '@/lib/area-guides'
 import { getProperties } from '@/lib/properties'
 import { toPropertyCardData } from '@/lib/property-card-data'
+import { DEFAULT_OG_IMAGE } from '@/lib/seo/og'
 import { getTaxonomyContent } from '@/lib/site-content/queries'
 
 export const revalidate = 60
@@ -35,7 +36,15 @@ export async function generateMetadata({
     title,
     description,
     alternates: { canonical: `/areas/${guide.slug}/` },
-    openGraph: { title, description, url: `/areas/${guide.slug}/` },
+    openGraph: {
+      title,
+      description,
+      url: `/areas/${guide.slug}/`,
+      siteName: 'Mojesu Properties',
+      locale: 'en_UG',
+      type: 'website',
+      images: [DEFAULT_OG_IMAGE],
+    },
   }
 }
 

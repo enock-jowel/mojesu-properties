@@ -8,6 +8,7 @@ import {
 } from '@/lib/blog'
 import { getHomeContent } from '@/lib/site-content/queries'
 import { responsiveImg } from '@/lib/media'
+import { CollectionJsonLd } from '@/components/seo/collection-json-ld'
 
 export const revalidate = 60
 
@@ -35,6 +36,12 @@ export default async function InsightsIndexPage() {
 
   return (
     <main className="min-h-screen bg-background">
+      <CollectionJsonLd
+        name="Kampala property guides and insights"
+        path="/insights/"
+        crumb="Insights"
+        itemPaths={posts.map((p) => `/insights/${p.slug}/`)}
+      />
       <SiteHeader />
 
       <header className="bg-surface-alt px-4 py-14 sm:px-8 sm:py-16 lg:py-20">

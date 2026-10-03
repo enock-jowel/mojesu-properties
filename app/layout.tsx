@@ -8,6 +8,7 @@ import { inventoryKeys } from '@/lib/inventory'
 import { OrganizationJsonLd } from '@/components/seo/organization-json-ld'
 import { getCompanyContent, getSiteCatalog } from '@/lib/site-content/queries'
 import { getReviewsPayload } from '@/lib/reviews'
+import { DEFAULT_OG_IMAGE } from '@/lib/seo/og'
 import './globals.css'
 /* Subset of Flaticon UIcons (~6KB CSS vs ~400KB full packs) — regenerate via pnpm uicons:subset */
 import '../styles/uicons-subset.css'
@@ -33,10 +34,12 @@ export const metadata: Metadata = {
     apple: [{ url: '/apple-touch-icon.png', sizes: '180x180' }],
   },
   openGraph: {
-    siteName: 'Mojesu',
+    siteName: 'Mojesu Properties',
     locale: 'en_UG',
     type: 'website',
+    images: [DEFAULT_OG_IMAGE],
   },
+  twitter: { card: 'summary_large_image' },
 }
 
 function supabaseHost(): string | null {

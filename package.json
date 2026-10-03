@@ -11,6 +11,7 @@
     "seed:listings": "node ./node_modules/tsx/dist/cli.mjs scripts/seed-listings.ts",
     "seed:content": "node ./node_modules/tsx/dist/cli.mjs scripts/seed-content.ts",
     "seed:site": "node ./node_modules/tsx/dist/cli.mjs scripts/seed-site-content.ts",
+    "indexnow": "node ./node_modules/tsx/dist/cli.mjs scripts/indexnow-ping.ts",
     "check:images": "node ./node_modules/tsx/dist/cli.mjs scripts/check-image-budget.ts",
     "preview:seed": "node ./node_modules/tsx/dist/cli.mjs scripts/seed-preview.ts",
     "vercel:preview": "node ./node_modules/tsx/dist/cli.mjs scripts/deploy-vercel-preview.ts",

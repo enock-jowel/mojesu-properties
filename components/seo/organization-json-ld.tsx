@@ -19,25 +19,27 @@ export function OrganizationJsonLd({
   const origin = siteOrigin()
   const sameAs = company.socials.map((s) => s.href).filter(Boolean)
 
+  // CMS address also carries opening hours after " · " — keep only the street part.
+  const streetAddress = company.address.split('·')[0].trim()
+  const phoneDigits = company.phoneTel.replace(/\D/g, '')
+
+  // No `geo` until the exact office pin is confirmed (Google Business Profile).
   const org: Record<string, unknown> = {
     '@type': ['Organization', 'RealEstateAgent', 'LocalBusiness'],
     '@id': `${origin}/#organization`,
     name: 'Mojesu Properties International Ltd',
+    alternateName: ['Mojesu Properties', 'Mojesu'],
     url: origin,
     logo: `${origin}/icon.png`,
+    image: `${origin}/icon.png`,
     email: company.email,
-    telephone: company.phoneDisplay,
+    telephone: phoneDigits ? `+${phoneDigits}` : company.phoneDisplay,
     address: {
       '@type': 'PostalAddress',
-      streetAddress: company.address,
+      streetAddress: streetAddress || company.address,
       addressLocality: 'Kampala',
       addressRegion: 'Central Region',
       addressCountry: 'UG',
-    },
-    geo: {
-      '@type': 'GeoCoordinates',
-      latitude: 0.3476,
-      longitude: 32.5825,
     },
     areaServed: [
       { '@type': 'City', name: 'Kampala' },
@@ -69,9 +71,19 @@ export function OrganizationJsonLd({
     }
   }
 
+  const website = {
+    '@type': 'WebSite',
+    '@id': `${origin}/#website`,
+    url: `${origin}/`,
+    name: 'Mojesu Properties',
+    alternateName: ['Mojesu', 'mojesuproperties.com'],
+    inLanguage: 'en-UG',
+    publisher: { '@id': `${origin}/#organization` },
+  }
+
   const payload = {
     '@context': 'https://schema.org',
-    ...org,
+    '@graph': [org, website],
   }
 
   return (

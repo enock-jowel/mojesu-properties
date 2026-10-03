@@ -34,7 +34,14 @@ type BrowseMode = 'rent' | 'buy' | 'land'
 const TITLES: Record<BrowseMode, string> = {
   rent: 'For rent',
   buy: 'For sale',
-  land: 'Land',
+  land: 'Land for sale',
+}
+
+/** Residential / unfiltered views target "homes for rent / sale" searches. */
+const HOME_TITLES: Record<BrowseMode, string> = {
+  rent: 'Homes for rent',
+  buy: 'Homes for sale',
+  land: 'Land for sale',
 }
 
 function resolvePropertyUseClass(use: string | null): UseClass | 'all' {
@@ -328,7 +335,7 @@ export function ListingsBrowse({
 
       <div className="site-container pt-8">
         <h1 className="text-3xl font-extrabold text-ink sm:text-4xl">
-          {TITLES[mode]}
+          {!use || use === 'residential' ? HOME_TITLES[mode] : TITLES[mode]}
           {location ? ` in ${location}` : ''}
         </h1>
         <p className="mt-1 text-[15px] text-neutral-muted">
