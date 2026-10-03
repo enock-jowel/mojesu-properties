@@ -16,6 +16,7 @@ land buyers. One focused batch per week, shipped on a branch, approved by a huma
 - [ ] Note queries at positions **8–20** with impressions ≥ 20 → quick-win list.
 - [ ] Note pages with CTR < 2% at positions ≤ 10 → title/description rewrite list.
 - [ ] GSC → Pages → any new "Crawled – not indexed" or "Duplicate without canonical".
+- [ ] After deploys that add/change pages: `pnpm indexnow` (Bing/Yandex). Status + target queries: `indexing-and-ranking-plan.md`.
 - [ ] Check new listings added this week: do their titles read `N-Bedroom Type for Rent in Area`?
 - [ ] Pick **one** content opportunity (see `content-template.md`).
 

@@ -4,6 +4,7 @@ import { SiteHeader } from '@/components/site-header'
 import { SiteFooter } from '@/components/site-footer'
 import { BrowseSkeleton } from '@/components/browse-skeleton'
 import { ListingsBrowse } from '@/components/listings-browse'
+import { BrowseGuide } from '@/components/browse-guide'
 import { getProperties } from '@/lib/properties'
 
 export const revalidate = 60
@@ -24,6 +25,7 @@ export default async function RentPage() {
       <Suspense fallback={<BrowseSkeleton />}>
         <ListingsBrowse mode="rent" properties={properties} />
       </Suspense>
+      <BrowseGuide mode="rent" properties={properties} />
       <SiteFooter />
     </main>
   )

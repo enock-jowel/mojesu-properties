@@ -5,6 +5,7 @@ import { getAllServices } from '@/lib/services'
 import { ArrowPillLink } from '@/components/arrow-pill-button'
 import { getHomeContent } from '@/lib/site-content/queries'
 import { sizedImageSrcSet, sizedImageUrl } from '@/lib/media'
+import { CollectionJsonLd } from '@/components/seo/collection-json-ld'
 
 export const revalidate = 60
 
@@ -24,6 +25,12 @@ export default async function ServicesIndexPage() {
 
   return (
     <main className="min-h-screen bg-background">
+      <CollectionJsonLd
+        name="Real estate services in Kampala"
+        path="/services/"
+        crumb="Services"
+        itemPaths={services.map((s) => `/services/${s.slug}/`)}
+      />
       <SiteHeader />
 
       <header className="bg-surface-alt px-4 py-14 sm:px-8 sm:py-16 lg:py-20">

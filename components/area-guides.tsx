@@ -102,7 +102,7 @@ function SectionEyebrow({ children }: { children: React.ReactNode }) {
 }
 
 /** Native <details> accordion — same pattern as the About FAQ, no client JS. */
-function GuideFaqSection({
+export function GuideFaqSection({
   faqs,
   title,
   body,
